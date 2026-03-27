@@ -1,59 +1,109 @@
 <script setup lang="ts">
-import Checkbox from '@/components/Checkbox.vue'
-import Input from '@/components/Input.vue'
-import Button from '@/components/Button.vue'
-import type { InputEntry } from '@/types'
+import Checkbox from "@/components/Checkbox.vue";
+import Input from "@/components/Input.vue";
+import Button from "@/components/Button.vue";
+import type { InputEntry } from "@/types";
 
-const inputs = defineModel<InputEntry[]>('inputs', { required: true })
+const inputs = defineModel<InputEntry[]>("inputs", { required: true });
 
-let nextId = inputs.value.length + 1
+let nextId = inputs.value.length + 1;
 
 function addInput() {
   inputs.value.push({
     id: nextId++,
     label: `输入${inputs.value.length + 1}`,
-    value: '',
+    value: "",
     enabled: true,
-  })
+  });
 }
 
 function removeInput(id: number) {
-  if (inputs.value.length <= 1) return
-  inputs.value = inputs.value.filter(i => i.id !== id)
-  reindexLabels()
+  if (inputs.value.length <= 1) return;
+  inputs.value = inputs.value.filter((i) => i.id !== id);
+  reindexLabels();
 }
 
 function reindexLabels() {
   inputs.value.forEach((entry, idx) => {
-    entry.label = `输入${idx + 1}`
-  })
+    entry.label = `输入${idx + 1}`;
+  });
 }
 </script>
 
 <template>
   <div class="panel h-full flex flex-col">
-    <div class="section-title">输入区</div>
-    <div class="flex-1 overflow-y-auto space-y-2 pr-1" style="max-height: 220px;">
+    <div class="section-title flex items-center justify-between">
+      <span class="flex items-center gap-2">
+        <svg
+          class="w-4 h-4 text-indigo-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          />
+        </svg>
+        输入区
+      </span>
+      <Button type="success" size="sm" @click="addInput">
+        <span class="flex items-center gap-1">
+          <svg
+            class="w-3 h-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          新增
+        </span>
+      </Button>
+    </div>
+    <div
+      class="flex-1 overflow-y-auto space-y-2 pr-1"
+      style="max-height: 220px"
+    >
       <div
         v-for="entry in inputs"
         :key="entry.id"
         class="flex items-center gap-2"
       >
         <Checkbox v-model="entry.enabled" />
-        <span class="text-xs text-gray-500 w-14 flex-shrink-0">{{ entry.label }}</span>
-        <Input v-model="entry.value" placeholder="请输入HEX数据..." class="flex-1 min-w-0" />
-        <Button
-          v-if="inputs.indexOf(entry) > 0"
-          type="danger"
-          size="sm"
-          @click="removeInput(entry.id)"
-        >
-          删除
+        <span class="text-xs text-gray-500 w-14 flex-shrink-0 font-medium">{{
+          entry.label
+        }}</span>
+        <Input v-model="entry.value" class="flex-1 min-w-0" />
+        <span
+          v-if="inputs.indexOf(entry) === 0"
+          class="w-[35px] flex-shrink-0"
+        ></span>
+        <Button v-else type="danger" size="sm" @click="removeInput(entry.id)">
+          <span class="flex items-center gap-1">
+            <svg
+              class="w-3 h-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+          </span>
         </Button>
       </div>
     </div>
-    <Button type="success" size="sm" class="mt-2 w-full" @click="addInput">
-      + 新增
-    </Button>
   </div>
 </template>

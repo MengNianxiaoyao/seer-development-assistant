@@ -6,13 +6,9 @@ export default defineConfig({
     presetAttributify(),
   ],
   shortcuts: {
-    'btn': 'px-4 py-1.5 rounded text-sm font-medium cursor-pointer transition-colors border-none outline-none',
-    'btn-primary': 'btn bg-purple-600 text-white hover:bg-purple-700',
-    'btn-warning': 'btn bg-orange-500 text-white hover:bg-orange-600',
-    'btn-success': 'btn bg-green-500 text-white hover:bg-green-600',
-    'panel': 'bg-white rounded-lg shadow p-3',
-    'card': 'bg-gray-50 border border-gray-200 rounded p-2 text-xs font-mono',
-    'section-title': 'text-sm font-bold text-gray-700 mb-2 pb-1 border-b border-gray-200',
+    'panel': 'bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-black/5 border border-gray-100 p-4',
+    'card': 'bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-lg p-3 text-xs font-mono shadow-sm hover:shadow-md transition-shadow',
+    'section-title': 'text-sm font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-100 flex items-center gap-2',
   },
   theme: {
     colors: {

@@ -10,7 +10,7 @@ import StatusBar from '@/components/StatusBar.vue'
 import AlertModal from '@/components/AlertModal.vue'
 import Button from '@/components/Button.vue'
 import { useHexParser } from '@/composables/useHexParser'
-import type { InputEntry, DisplayFormat, ValidationError } from '@/types'
+import type { InputEntry, DisplayFormat, ValidationError, AnalysisResult, ParsedPacket, HeaderField, ParamItem } from '@/types'
 
 const { result, isAnalyzed, validate, analyze, reset: resetParser } = useHexParser()
 
@@ -29,6 +29,8 @@ const showAlertModal = ref(false)
 function handleAnalyze() {
   const dataInputs = inputs.value.filter(i => i.value.trim())
   if (dataInputs.length === 0) return
+
+  displayFormat.value = 'hex'
 
   const errors = validate(dataInputs.map(i => ({ raw: i.value, enabled: i.enabled, label: i.label })))
 
@@ -79,6 +81,7 @@ function handleExport() {
     diffCount: result.value.diffCount,
     packets: result.value.packets.map(p => ({
       id: p.id,
+      raw: p.raw,
       header: {
         packetLength: p.header.packetLength.decimal,
         version: p.header.version.decimal,
@@ -111,13 +114,98 @@ function handleExport() {
   URL.revokeObjectURL(url)
 }
 
-function handleImportFile(hexStrings: string[]) {
-  inputs.value = hexStrings.map((hex, idx) => ({
+function handleImportFile(hexStringsOrJson: string[]) {
+  // Check if it's already parsed analysis result
+  if (hexStringsOrJson.length === 1) {
+    try {
+      const data = JSON.parse(hexStringsOrJson[0])
+      if (data.packets && Array.isArray(data.packets)) {
+        const packets: ParsedPacket[] = data.packets.map((p: any, idx: number) => ({
+          id: idx + 1,
+          label: p.label || `输入${idx + 1}`,
+          raw: p.raw || '',
+          header: {
+            packetLength: makeHeaderField('封包长度', intToHex(p.header?.packetLength ?? 0, 8)),
+            version: makeHeaderField('版本号', intToHex(p.header?.version ?? 0, 2)),
+            commandId: makeHeaderField('命令号', intToHex(p.header?.commandId ?? 0, 8)),
+            mimiId: makeHeaderField('米米号', intToHex(p.header?.mimiId ?? 0, 8)),
+            sequence: makeHeaderField('序列号', intToHex(p.header?.sequence ?? 0, 8)),
+            paramCount: makeHeaderField('参数数量', intToHex(p.header?.paramCount ?? 0, 8)),
+          },
+          params: (p.params || []).map((param: any): ParamItem => ({
+            index: param.index,
+            hex: param.hex || '',
+            decimal: param.decimal ?? 0,
+            binary: param.binary || '',
+          })),
+          isGrouped: (p.header?.paramCount ?? 0) > 1,
+          groupSize: (p.header?.commandId ?? 0) === 42023 ? 2 : 8,
+        }))
+
+        const diffs = findDifferences(packets)
+        const res: AnalysisResult = {
+          packets,
+          diffs,
+          diffCount: diffs.length,
+          totalParams: packets.reduce((sum, p) => sum + p.params.length, 0),
+          validPackets: packets.length,
+        }
+        result.value = res
+        isAnalyzed.value = true
+        displayFormat.value = 'hex'
+        inputs.value = packets.map((p, idx) => ({
+          id: idx + 1,
+          label: p.label,
+          value: p.raw,
+          enabled: true,
+        }))
+        return
+      }
+    } catch {
+      // Not a parsed result, continue as hex strings
+    }
+  }
+
+  // Handle as raw hex strings
+  inputs.value = hexStringsOrJson.map((hex, idx) => ({
     id: idx + 1,
     label: `输入${idx + 1}`,
     value: hex,
     enabled: true,
   }))
+
+  displayFormat.value = 'hex'
+  handleAnalyze()
+}
+
+function intToHex(num: number, length: number): string {
+  return num.toString(16).toUpperCase().padStart(length, '0')
+}
+
+function makeHeaderField(name: string, hex: string): HeaderField {
+  return {
+    name,
+    hex,
+    decimal: parseInt(hex, 16),
+    binary: hex.split('').map(c => parseInt(c, 16).toString(2).padStart(4, '0')).join(''),
+  }
+}
+
+function findDifferences(packets: ParsedPacket[]): AnalysisResult['diffs'] {
+  if (packets.length < 2) return []
+  const maxLen = Math.max(...packets.map(p => p.params.length))
+  const diffs: AnalysisResult['diffs'] = []
+  for (let i = 0; i < maxLen; i++) {
+    const values = packets.map(p => p.params[i]?.hex ?? '')
+    const first = values[0]
+    if (values.some(v => v !== first)) {
+      const ref = packets[0].params[i]
+      if (ref) {
+        diffs.push({ index: i + 1, hex: ref.hex, decimal: ref.decimal, binary: ref.binary })
+      }
+    }
+  }
+  return diffs
 }
 
 function handleImportError() {
@@ -154,13 +242,13 @@ function handleImportError() {
       </div>
 
       <!-- Bottom Row: Output Container + Header -->
-      <div class="flex gap-3 flex-1" style="min-height: 300px;">
+      <div class="flex gap-3" style="height: 560px;">
         <!-- Output Container: 所有参数区 + 相异参数区 -->
-        <div class="w-[80%] flex flex-col gap-3">
-          <div class="flex-1">
+        <div class="w-[80%] flex flex-col gap-3 h-full">
+          <div class="flex-1 overflow-hidden">
             <OutputArea :result="result" :format="displayFormat" />
           </div>
-          <div class="flex-1">
+          <div class="flex-1 overflow-hidden">
             <DiffArea :result="result" :format="displayFormat" />
           </div>
         </div>

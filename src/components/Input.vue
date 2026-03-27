@@ -1,9 +1,9 @@
 <script setup lang="ts">
 defineProps<{
-  placeholder?: string
-}>()
+  placeholder?: string;
+}>();
 
-const model = defineModel<string>({ required: true })
+const model = defineModel<string>({ required: true });
 </script>
 
 <template>
@@ -11,6 +11,6 @@ const model = defineModel<string>({ required: true })
     v-model="model"
     type="text"
     :placeholder="placeholder"
-    class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-mono shadow-sm transition-all duration-200 placeholder:text-gray-300 hover:border-gray-300 hover:shadow focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 focus:shadow-md"
+    class="w-full px-3 py-2 bg-gray-50/50 border border-gray-200 rounded-lg text-xs font-mono transition-all duration-200 placeholder:text-gray-400 hover:bg-white hover:border-indigo-300 hover:shadow-sm focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 focus:shadow-sm outline-none"
   />
 </template>
