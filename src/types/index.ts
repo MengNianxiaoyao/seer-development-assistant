@@ -53,5 +53,10 @@ export interface InputEntry {
   enabled: boolean
 }
 
+export interface ValidationError {
+  label: string
+  reasons: string[]
+}
+
 export type DisplayFormat = 'hex' | 'decimal' | 'binary'
 export type BinaryGroupSize = 1 | 2 | 4 | 8

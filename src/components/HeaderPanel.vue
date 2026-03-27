@@ -17,6 +17,7 @@ const headerFields = computed(() => {
     { name: '米米号', decimal: first.header.mimiId.decimal },
     { name: '序列号', decimal: first.header.sequence.decimal },
     { name: '参数总数', decimal: 1 + first.header.paramCount.decimal },
+    { name: '参数数量', decimal: first.header.paramCount.decimal },
   ]
 })
 

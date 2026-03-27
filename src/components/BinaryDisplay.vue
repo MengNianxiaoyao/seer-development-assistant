@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import RadioGroup from '@/components/RadioGroup.vue'
 import type { BinaryGroupSize, InputEntry } from '@/types'
 
 const props = defineProps<{
@@ -7,6 +8,13 @@ const props = defineProps<{
 }>()
 
 const groupSize = ref<BinaryGroupSize>(8)
+
+const radioOptions = [
+  { value: 1, label: '0' },
+  { value: 2, label: '00' },
+  { value: 4, label: '0000' },
+  { value: 8, label: '00000000' },
+]
 
 function hexToBinary(hex: string): string {
   return hex.split('').map(c => parseInt(c, 16).toString(2).padStart(4, '0')).join('')
@@ -83,15 +91,7 @@ function getHighlightClass(packetIdx: number, paramIdx: number): string {
 
     <div class="flex items-center gap-3 mb-2">
       <span class="text-xs text-gray-500">选择十六进制格式:</span>
-      <label v-for="size in [1, 2, 4, 8] as BinaryGroupSize[]" :key="size" class="flex items-center gap-1 cursor-pointer">
-        <input
-          v-model="groupSize"
-          type="radio"
-          :value="size"
-          class="accent-purple-600"
-        />
-        <span class="text-xs font-mono">{{ '0'.repeat(size) }}</span>
-      </label>
+      <RadioGroup v-model="groupSize" :options="radioOptions" />
     </div>
 
     <div class="flex-1 overflow-x-auto overflow-y-auto">

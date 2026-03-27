@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { InputEntry } from '@/types'
+import FilePicker from '@/components/FilePicker.vue'
+import Button from '@/components/Button.vue'
 
 const emit = defineEmits<{
   import: []
@@ -7,17 +8,10 @@ const emit = defineEmits<{
   analyze: []
   convertDecimal: []
   reset: []
+  importFile: [data: string[]]
 }>()
 
-defineProps<{
-  inputs: InputEntry[]
-}>()
-
-function handleImportFile(e: Event) {
-  const input = e.target as HTMLInputElement
-  if (!input.files?.length) return
-
-  const file = input.files[0]
+function handleFileSelected(file: File) {
   const reader = new FileReader()
   reader.onload = () => {
     try {
@@ -38,15 +32,13 @@ function handleImportFile(e: Event) {
       }
 
       if (hexStrings.length > 0) {
-        // Dynamically import to pass data up
-        window.dispatchEvent(new CustomEvent('hex-import', { detail: hexStrings }))
+        emit('importFile', hexStrings)
       }
     } catch {
-      alert('JSON 解析失败，请检查文件格式')
+      emit('import')
     }
   }
   reader.readAsText(file)
-  input.value = ''
 }
 </script>
 
@@ -54,33 +46,22 @@ function handleImportFile(e: Event) {
   <div class="panel h-full flex flex-col gap-2">
     <div class="section-title">功能选择区</div>
 
-    <div class="relative">
-      <button class="btn-primary w-full" @click="($refs.fileInput as HTMLInputElement).click()">
-        导入数据
-      </button>
-      <input
-        ref="fileInput"
-        type="file"
-        accept=".json"
-        class="hidden"
-        @change="handleImportFile"
-      />
-    </div>
+    <FilePicker @selected="handleFileSelected" />
 
-    <button class="btn-warning w-full" @click="emit('export')">
+    <Button type="warning" class="w-full" @click="emit('export')">
       导出数据
-    </button>
+    </Button>
 
-    <button class="btn-primary w-full" @click="emit('analyze')">
+    <Button type="primary" class="w-full" @click="emit('analyze')">
       开始分析
-    </button>
+    </Button>
 
-    <button class="btn-warning w-full" @click="emit('convertDecimal')">
+    <Button type="warning" class="w-full" @click="emit('convertDecimal')">
       转为十进制
-    </button>
+    </Button>
 
-    <button class="btn bg-red-500 text-white hover:bg-red-600 w-full" @click="emit('reset')">
+    <Button type="danger" class="w-full" @click="emit('reset')">
       一键重置
-    </button>
+    </Button>
   </div>
 </template>

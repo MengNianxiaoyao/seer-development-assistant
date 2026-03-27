@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import HexInput from '@/components/HexInput.vue'
 import ActionPanel from '@/components/ActionPanel.vue'
 import BinaryDisplay from '@/components/BinaryDisplay.vue'
@@ -7,10 +7,12 @@ import OutputArea from '@/components/OutputArea.vue'
 import DiffArea from '@/components/DiffArea.vue'
 import HeaderPanel from '@/components/HeaderPanel.vue'
 import StatusBar from '@/components/StatusBar.vue'
+import AlertModal from '@/components/AlertModal.vue'
+import Button from '@/components/Button.vue'
 import { useHexParser } from '@/composables/useHexParser'
-import type { InputEntry, DisplayFormat } from '@/types'
+import type { InputEntry, DisplayFormat, ValidationError } from '@/types'
 
-const { result, isAnalyzed, analyze, reset: resetParser } = useHexParser()
+const { result, isAnalyzed, validate, analyze, reset: resetParser } = useHexParser()
 
 const inputs = ref<InputEntry[]>([
   { id: 1, label: '输入1', value: '', enabled: true },
@@ -19,9 +21,34 @@ const inputs = ref<InputEntry[]>([
 ])
 
 const displayFormat = ref<DisplayFormat>('hex')
+const validationErrors = ref<ValidationError[]>([])
+const showValidationModal = ref(false)
+const alertMessage = ref('')
+const showAlertModal = ref(false)
 
 function handleAnalyze() {
-  analyze(inputs.value.filter(i => i.value.trim()).map(i => ({ raw: i.value, enabled: i.enabled, label: i.label })))
+  const dataInputs = inputs.value.filter(i => i.value.trim())
+  if (dataInputs.length === 0) return
+
+  const errors = validate(dataInputs.map(i => ({ raw: i.value, enabled: i.enabled, label: i.label })))
+
+  if (errors.length > 0) {
+    validationErrors.value = errors
+    showValidationModal.value = true
+    return
+  }
+
+  analyze(dataInputs.map(i => ({ raw: i.value, enabled: i.enabled, label: i.label })))
+}
+
+function closeValidationModal() {
+  showValidationModal.value = false
+  validationErrors.value = []
+}
+
+function closeAlertModal() {
+  showAlertModal.value = false
+  alertMessage.value = ''
 }
 
 function handleReset() {
@@ -40,7 +67,8 @@ function handleConvertDecimal() {
 
 function handleExport() {
   if (!result.value) {
-    alert('请先进行分析')
+    alertMessage.value = '请先进行分析'
+    showAlertModal.value = true
     return
   }
 
@@ -83,7 +111,7 @@ function handleExport() {
   URL.revokeObjectURL(url)
 }
 
-function handleImport(hexStrings: string[]) {
+function handleImportFile(hexStrings: string[]) {
   inputs.value = hexStrings.map((hex, idx) => ({
     id: idx + 1,
     label: `输入${idx + 1}`,
@@ -92,18 +120,10 @@ function handleImport(hexStrings: string[]) {
   }))
 }
 
-function onImportEvent(e: Event) {
-  const custom = e as CustomEvent<string[]>
-  handleImport(custom.detail)
+function handleImportError() {
+  alertMessage.value = 'JSON 解析失败，请检查文件格式'
+  showAlertModal.value = true
 }
-
-onMounted(() => {
-  window.addEventListener('hex-import', onImportEvent)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('hex-import', onImportEvent)
-})
 </script>
 
 <template>
@@ -120,8 +140,8 @@ onUnmounted(() => {
         </div>
         <div class="w-[10%]">
           <ActionPanel
-            :inputs="inputs"
-            @import="() => {}"
+            @import-file="handleImportFile"
+            @import="handleImportError"
             @export="handleExport"
             @analyze="handleAnalyze"
             @convert-decimal="handleConvertDecimal"
@@ -156,6 +176,61 @@ onUnmounted(() => {
       :param-count="result?.packets?.[0]?.header?.paramCount?.decimal ?? 0"
       :diff-count="result?.diffCount ?? 0"
       :analyzed="isAnalyzed"
+    />
+
+    <!-- Validation Error Modal -->
+    <div
+      v-if="showValidationModal"
+      class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+      @click.self="closeValidationModal"
+    >
+      <div class="bg-white rounded-2xl shadow-2xl w-[500px] max-h-[70vh] flex flex-col overflow-hidden animate-scale-in">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-red-50 to-white">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+              <svg class="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 class="text-sm font-semibold text-red-600">校验不通过</h2>
+          </div>
+          <span
+            class="w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 cursor-pointer transition-colors text-lg leading-none"
+            @click="closeValidationModal"
+          >×</span>
+        </div>
+        <div class="p-5 overflow-y-auto flex-1 space-y-3">
+          <div
+            v-for="err in validationErrors"
+            :key="err.label"
+          >
+            <div class="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+              {{ err.label }}
+            </div>
+            <div class="bg-red-50 border border-red-100 rounded-lg p-3 space-y-1">
+              <div
+                v-for="(reason, idx) in err.reasons"
+                :key="idx"
+                class="text-xs text-red-500 flex items-start gap-1.5"
+              >
+                <span class="text-red-300 mt-0.5">·</span>
+                <span>{{ reason }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="px-5 py-4 border-t border-gray-100 flex justify-end bg-gray-50/50">
+          <Button type="default" size="sm" @click="closeValidationModal">关闭</Button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <AlertModal
+      v-if="showAlertModal"
+      :message="alertMessage"
+      @close="closeAlertModal"
     />
   </div>
 </template>

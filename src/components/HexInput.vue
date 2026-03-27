@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import Checkbox from '@/components/Checkbox.vue'
+import Input from '@/components/Input.vue'
+import Button from '@/components/Button.vue'
 import type { InputEntry } from '@/types'
 
 const inputs = defineModel<InputEntry[]>('inputs', { required: true })
@@ -36,32 +39,21 @@ function reindexLabels() {
         :key="entry.id"
         class="flex items-center gap-2"
       >
-        <input
-          v-model="entry.enabled"
-          type="checkbox"
-          class="w-4 h-4 accent-purple-600 cursor-pointer flex-shrink-0"
-        />
+        <Checkbox v-model="entry.enabled" />
         <span class="text-xs text-gray-500 w-14 flex-shrink-0">{{ entry.label }}</span>
-        <input
-          v-model="entry.value"
-          type="text"
-          placeholder="请输入HEX数据..."
-          class="flex-1 min-w-0 px-2 py-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:border-purple-500"
-        />
-        <button
+        <Input v-model="entry.value" placeholder="请输入HEX数据..." class="flex-1 min-w-0" />
+        <Button
           v-if="inputs.indexOf(entry) > 0"
-          class="btn bg-red-100 text-red-600 hover:bg-red-200 text-xs px-2 py-1 flex-shrink-0"
+          type="danger"
+          size="sm"
           @click="removeInput(entry.id)"
         >
           删除
-        </button>
+        </Button>
       </div>
     </div>
-    <button
-      class="btn bg-green-500 text-white hover:bg-green-600 mt-2 text-xs"
-      @click="addInput"
-    >
+    <Button type="success" size="sm" class="mt-2 w-full" @click="addInput">
       + 新增
-    </button>
+    </Button>
   </div>
 </template>

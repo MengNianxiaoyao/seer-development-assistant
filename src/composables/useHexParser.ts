@@ -7,6 +7,7 @@ import type {
   AnalysisResult,
   DiffResult,
   BinaryGroupSize,
+  ValidationError,
 } from '@/types'
 
 function hexToBinary(hex: string): string {
@@ -138,6 +139,48 @@ export function useHexParser() {
     return diffs
   }
 
+  function validate(inputs: { raw: string; enabled: boolean; label: string }[]): ValidationError[] {
+    const dataInputs = inputs.filter(i => i.enabled && i.raw.trim())
+    if (dataInputs.length < 2) return []
+
+    const HEADER_LENGTH = 42
+
+    const baseline = parseSinglePacket(0, dataInputs[0].raw, dataInputs[0].label)
+    const errors: ValidationError[] = []
+
+    for (let i = 1; i < dataInputs.length; i++) {
+      const current = parseSinglePacket(0, dataInputs[i].raw, dataInputs[i].label)
+      const reasons: string[] = []
+
+      // Format check: length must be at least header length
+      const rawLen = current.raw.length
+      if (rawLen < HEADER_LENGTH) {
+        reasons.push(`封包格式异常：长度不足（${rawLen} < ${HEADER_LENGTH}）`)
+      }
+
+      // Packet length check
+      if (current.header.packetLength.hex !== baseline.header.packetLength.hex) {
+        reasons.push(`封包长度不一致：${current.header.packetLength.decimal} ≠ ${baseline.header.packetLength.decimal}`)
+      }
+
+      // Command ID check
+      if (current.header.commandId.hex !== baseline.header.commandId.hex) {
+        reasons.push(`命令号不一致：${current.header.commandId.decimal} ≠ ${baseline.header.commandId.decimal}`)
+      }
+
+      // Parameter count check
+      if (current.header.paramCount.hex !== baseline.header.paramCount.hex) {
+        reasons.push(`参数数量不一致：${current.header.paramCount.decimal} ≠ ${baseline.header.paramCount.decimal}`)
+      }
+
+      if (reasons.length > 0) {
+        errors.push({ label: dataInputs[i].label, reasons })
+      }
+    }
+
+    return errors
+  }
+
   function analyze(inputs: { raw: string; enabled: boolean; label: string }[]): AnalysisResult {
     const enabledInputs = inputs.filter(i => i.enabled && i.raw.trim())
     const packets = enabledInputs.map((input, idx) =>
@@ -187,6 +230,7 @@ export function useHexParser() {
   return {
     result,
     isAnalyzed,
+    validate,
     analyze,
     splitByGroupSize,
     reset,
