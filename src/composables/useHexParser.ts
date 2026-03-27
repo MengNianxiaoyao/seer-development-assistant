@@ -168,14 +168,33 @@ export function useHexParser() {
         reasons.push(`命令号不一致：${current.header.commandId.decimal} ≠ ${baseline.header.commandId.decimal}`)
       }
 
-      // Parameter count check
+      // Parameter count check (header field)
       if (current.header.paramCount.hex !== baseline.header.paramCount.hex) {
         reasons.push(`参数数量不一致：${current.header.paramCount.decimal} ≠ ${baseline.header.paramCount.decimal}`)
+      }
+
+      // Parsed param count vs header param count check
+      const declaredCount = current.header.paramCount.decimal
+      const actualCount = current.params.length
+      if (declaredCount > 1 && actualCount !== declaredCount) {
+        reasons.push(`实际参数数量与声明不一致：解析到 ${actualCount} 个，声明 ${declaredCount} 个`)
+      }
+
+      // Parsed param count vs baseline check
+      if (current.params.length !== baseline.params.length) {
+        reasons.push(`解析参数数量不一致：${current.params.length} ≠ ${baseline.params.length}`)
       }
 
       if (reasons.length > 0) {
         errors.push({ label: dataInputs[i].label, reasons })
       }
+    }
+
+    // Also validate baseline
+    const baselineDeclaredCount = baseline.header.paramCount.decimal
+    const baselineActualCount = baseline.params.length
+    if (baselineDeclaredCount > 1 && baselineActualCount !== baselineDeclaredCount) {
+      errors.unshift({ label: dataInputs[0].label, reasons: [`实际参数数量与声明不一致：解析到 ${baselineActualCount} 个，声明 ${baselineDeclaredCount} 个`] })
     }
 
     return errors
