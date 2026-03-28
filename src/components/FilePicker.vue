@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import Button from '@/components/Button.vue'
 
 const emit = defineEmits<{
@@ -27,15 +27,44 @@ function handleDrop(e: DragEvent) {
     emit('selected', e.dataTransfer.files[0])
   }
 }
+
+function handleWindowDragOver(e: DragEvent) {
+  e.preventDefault()
+  isDragging.value = true
+}
+
+function handleWindowDragLeave(e: DragEvent) {
+  // 只有当拖拽完全离开窗口时才设置为false
+  if (e.relatedTarget === null) {
+    isDragging.value = false
+  }
+}
+
+function handleWindowDrop(e: DragEvent) {
+  e.preventDefault()
+  isDragging.value = false
+  if (e.dataTransfer?.files.length) {
+    emit('selected', e.dataTransfer.files[0])
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('dragover', handleWindowDragOver)
+  window.addEventListener('dragleave', handleWindowDragLeave)
+  window.addEventListener('drop', handleWindowDrop)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('dragover', handleWindowDragOver)
+  window.removeEventListener('dragleave', handleWindowDragLeave)
+  window.removeEventListener('drop', handleWindowDrop)
+})
 </script>
 
 <template>
   <div
     class="rounded-lg transition-all duration-200"
     :class="isDragging ? 'ring-2 ring-purple-400 ring-offset-1' : ''"
-    @dragover.prevent="isDragging = true"
-    @dragleave="isDragging = false"
-    @drop.prevent="handleDrop"
   >
     <Button type="primary" class="w-full" @click="handleClick">
       <span class="flex items-center justify-center gap-1.5">

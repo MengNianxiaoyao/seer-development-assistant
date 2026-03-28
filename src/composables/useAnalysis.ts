@@ -106,7 +106,7 @@ export function useAnalysis() {
   function parseJsonToPackets(data: any): ParsedPacket[] {
     return data.packets.map((p: any, idx: number) => ({
       id: idx + 1,
-      label: p.label || `输入${idx + 1}`,
+      label: p.label || `收包${idx + 1}`,
       raw: p.raw || '',
       header: {
         packetLength: makeHeaderField('封包长度', decimalToHex(p.header?.packetLength ?? 0, 8)),
