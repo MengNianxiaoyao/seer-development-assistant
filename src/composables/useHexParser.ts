@@ -7,6 +7,7 @@ import type {
   ParsedPacket,
   AnalysisResult,
   ValidationError,
+  DiffResult,
 } from '@/types'
 
 export function useHexParser() {
@@ -162,7 +163,7 @@ export function useHexParser() {
     
     // 只对收包进行差异比较，发包不参与
     const receivePackets = packets.filter(p => p.label !== '发包')
-    const diffs = findDifferences(receivePackets.length >= 2 ? receivePackets : packets)
+    const diffs = receivePackets.length >= 2 ? findDifferences(receivePackets) : []
     const totalParams = packets.reduce((sum, p) => sum + p.params.length, 0)
 
     const res: AnalysisResult = {

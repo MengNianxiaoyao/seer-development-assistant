@@ -136,8 +136,8 @@ export function useAnalysis() {
       sendPacket.value = sendPacketData.raw
     }
 
-    // Use receive packets for diff calculation
-    const diffs = findDifferences(receivePackets.length > 0 ? receivePackets : packets)
+    // Use receive packets for diff calculation (only if >= 2 packets)
+    const diffs = receivePackets.length >= 2 ? findDifferences(receivePackets) : []
     const res: AnalysisResult = {
       packets,
       diffs,
