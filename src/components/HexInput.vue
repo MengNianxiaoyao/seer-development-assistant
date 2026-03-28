@@ -1,40 +1,44 @@
 <script setup lang="ts">
-import Checkbox from "@/components/Checkbox.vue";
-import Input from "@/components/Input.vue";
-import Button from "@/components/Button.vue";
-import type { InputEntry } from "@/types";
+import { computed } from 'vue'
+import Checkbox from '@/components/Checkbox.vue'
+import Input from '@/components/Input.vue'
+import Button from '@/components/Button.vue'
+import type { InputEntry } from '@/types'
 
-const inputs = defineModel<InputEntry[]>("inputs", { required: true });
-const sendPacket = defineModel<string>("sendPacket", { required: true });
+const inputs = defineModel<InputEntry[]>('inputs', { required: true })
+const sendPacket = defineModel<string>('sendPacket', { required: true })
 
-let nextId = inputs.value.length + 1;
+const maxId = computed(() => {
+  if (inputs.value.length === 0) return 0
+  return Math.max(...inputs.value.map(i => i.id))
+})
 
 function addInput() {
   inputs.value.push({
-    id: nextId++,
+    id: maxId.value + 1,
     label: `收包${inputs.value.length + 1}`,
-    value: "",
+    value: '',
     enabled: true,
-  });
+  })
 }
 
 function removeInput(id: number) {
-  if (inputs.value.length <= 1) return;
-  inputs.value = inputs.value.filter((i) => i.id !== id);
-  reindexLabels();
+  if (inputs.value.length <= 1) return
+  inputs.value = inputs.value.filter(i => i.id !== id)
+  reindexLabels()
 }
 
 function reindexLabels() {
   inputs.value.forEach((entry, idx) => {
-    entry.label = `收包${idx + 1}`;
-  });
+    entry.label = `收包${idx + 1}`
+  })
 }
 </script>
 
 <template>
   <div class="panel h-full flex flex-col">
     <div class="section-title flex items-center justify-between">
-      <span class="flex items-center gap-2">
+      <span class="label-with-icon">
         <svg
           class="w-4 h-4 text-indigo-500"
           fill="none"
@@ -51,7 +55,7 @@ function reindexLabels() {
         输入区
       </span>
       <Button type="success" size="sm" @click="addInput">
-        <span class="flex items-center gap-1.5">
+        <span class="label-with-icon">
           <svg
             class="w-3.5 h-3.5"
             fill="none"
@@ -69,10 +73,7 @@ function reindexLabels() {
         </span>
       </Button>
     </div>
-    <div
-      class="flex-1 overflow-y-auto space-y-2 pr-1"
-      style="max-height: 220px"
-    >
+    <div class="flex-1 overflow-y-auto space-y-2 pr-1" style="max-height: 220px">
       <!-- 发包输入 -->
       <div class="flex items-center gap-2">
         <span class="text-xs text-orange-500 w-14 flex-shrink-0 font-semibold">发包</span>
@@ -82,21 +83,16 @@ function reindexLabels() {
       <div class="border-t border-gray-200 border-dashed my-1"></div>
       <!-- 收包输入 -->
       <div
-        v-for="entry in inputs"
+        v-for="(entry, index) in inputs"
         :key="entry.id"
         class="flex items-center gap-2"
       >
         <Checkbox v-model="entry.enabled" />
-        <span class="text-xs text-gray-500 w-14 flex-shrink-0 font-medium">{{
-          entry.label
-        }}</span>
+        <span class="text-xs text-gray-500 w-14 flex-shrink-0 font-medium">{{ entry.label }}</span>
         <Input v-model="entry.value" class="flex-1 min-w-0" placeholder="请输入收包" />
-        <span
-          v-if="inputs.indexOf(entry) === 0"
-          class="w-[40px] flex-shrink-0"
-        ></span>
+        <span v-if="index === 0" class="w-[40px] flex-shrink-0"></span>
         <Button v-else type="danger" size="sm" @click="removeInput(entry.id)">
-          <span class="flex items-center justify-center">
+          <span class="icon-btn">
             <svg
               class="w-3.5 h-3.5"
               fill="none"

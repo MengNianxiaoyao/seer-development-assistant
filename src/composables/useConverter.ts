@@ -1,13 +1,6 @@
 import { ref, computed } from 'vue'
 import { hexToDecimal, decimalToHex, cleanHex } from '@/utils/hex'
-
-export type ConvertDirection = 'hexToFormat' | 'formatToHex'
-
-export interface ParsedParam {
-  index: number
-  value: string
-  selected: boolean
-}
+import type { ConvertDirection, ParsedParam } from '@/types'
 
 export function useConverter() {
   const hexInput = ref('')

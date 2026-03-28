@@ -97,7 +97,7 @@ export function copyToClipboard(text: string): Promise<boolean> {
   return navigator.clipboard.writeText(text).then(() => true).catch(() => false)
 }
 
-export function downloadJson(data: any, filename?: string): void {
+export function downloadJson(data: unknown, filename?: string): void {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')

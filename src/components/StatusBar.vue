@@ -15,7 +15,7 @@ const version = computed(() => __APP_VERSION__)
 </script>
 
 <template>
-  <div class="bg-gray-800 text-white px-4 py-1.5 text-xs flex items-center justify-between">
+  <div class="status-bar">
     <span v-if="loading" class="text-yellow-400 flex items-center gap-1.5">
       <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />

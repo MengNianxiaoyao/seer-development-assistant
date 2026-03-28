@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { useHexParser } from './useHexParser'
 import { decimalToHex, makeHeaderField, findDifferences, downloadJson } from '@/utils/hex'
-import type { InputEntry, DisplayFormat, ValidationError, ParsedPacket, AnalysisResult, ParamItem } from '@/types'
+import type { InputEntry, DisplayFormat, ValidationError, ParsedPacket, AnalysisResult, ParamItem, ExportData } from '@/types'
 
 const DEFAULT_INPUTS: InputEntry[] = [
   { id: 1, label: '收包1', value: '', enabled: true },
@@ -68,7 +68,7 @@ export function useAnalysis() {
       return
     }
 
-    const exportData = {
+    const exportData: ExportData = {
       exportTime: new Date().toISOString(),
       validPackets: result.value.validPackets,
       totalParams: result.value.totalParams,

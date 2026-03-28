@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { toRef } from 'vue'
 import { formatValue, getHighlightClass, copyToClipboard } from '@/utils/hex'
+import { useDiffIndexSet, useReceivePackets, useSendPacketParams } from '@/composables/usePacketData'
 import type { AnalysisResult, DisplayFormat } from '@/types'
+import { ref } from 'vue'
 
 const props = defineProps<{
   result: AnalysisResult | null
@@ -10,27 +12,15 @@ const props = defineProps<{
 
 const copiedIndex = ref<number | null>(null)
 
-const diffIndexSet = computed(() => {
-  if (!props.result?.diffs.length) return new Set<number>()
-  return new Set(props.result.diffs.map(d => d.index))
-})
-
-const sendPacketParams = computed(() => {
-  if (!props.result) return []
-  const sendPacket = props.result.packets.find(p => p.label === '发包')
-  if (!sendPacket) return []
-  return sendPacket.params
-})
+const resultRef = toRef(props, 'result')
+const diffIndexSet = useDiffIndexSet(resultRef)
+const receivePackets = useReceivePackets(resultRef)
+const sendPacketParams = useSendPacketParams(resultRef)
 
 function getSendParamClass(paramIdx: number): string {
-  if (!diffIndexSet.value.has(paramIdx)) return 'bg-orange-100 text-orange-700'
-  return 'bg-yellow-100 text-yellow-700'
+  if (!diffIndexSet.value.has(paramIdx)) return 'highlight-orange'
+  return 'highlight-yellow'
 }
-
-const receivePackets = computed(() => {
-  if (!props.result) return []
-  return props.result.packets.filter(p => p.label !== '发包')
-})
 
 async function handleCopy(value: string, index: number) {
   const success = await copyToClipboard(value)
@@ -39,12 +29,17 @@ async function handleCopy(value: string, index: number) {
     setTimeout(() => { copiedIndex.value = null }, 1200)
   }
 }
+
+function hasContent(): boolean {
+  if (!props.result && sendPacketParams.value.length === 0) return false
+  return (props.result?.packets.length ?? 0) > 0 || sendPacketParams.value.length > 0
+}
 </script>
 
 <template>
   <div class="panel h-full flex flex-col">
     <div class="section-title">
-      <span class="flex items-center gap-2">
+      <span class="label-with-icon">
         <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
@@ -53,15 +48,13 @@ async function handleCopy(value: string, index: number) {
       <span v-if="copiedIndex !== null" class="text-[10px] text-green-500 ml-2 animate-fade-in">已复制</span>
     </div>
 
-    <div
-      v-if="(!result || result.packets.length === 0) && sendPacketParams.length === 0"
-      class="text-gray-400 text-xs text-center py-4 flex-1"
-    >
+    <div v-if="!hasContent()" class="text-gray-400 text-xs text-center py-4 flex-1">
       点击"开始分析"查看结果
     </div>
 
     <div v-else class="flex-1 overflow-x-auto overflow-y-auto">
       <div class="flex gap-2">
+        <!-- 发包参数 -->
         <div v-if="sendPacketParams.length > 0" class="card inline-block flex-shrink-0 border-2 border-orange-300">
           <div class="text-orange-600 font-bold mb-1 flex items-center gap-1">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -73,15 +66,17 @@ async function handleCopy(value: string, index: number) {
             <div
               v-for="param in sendPacketParams"
               :key="param.index"
-              class="flex gap-1 px-1 py-0.5 rounded cursor-pointer hover:ring-1 hover:ring-orange-300 transition-all"
+              class="diff-item-clickable hover:ring-orange-300"
               :class="[getSendParamClass(param.index), copiedIndex === param.index ? 'ring-2 ring-green-400' : '']"
               @click="handleCopy(formatValue(param.hex, param.decimal, param.binary, format), param.index)"
             >
-              <span class="opacity-60 w-8 inline-block">[{{ param.index }}]</span>
+              <span class="param-index">[{{ param.index }}]</span>
               <span>{{ formatValue(param.hex, param.decimal, param.binary, format) }}</span>
             </div>
           </div>
         </div>
+
+        <!-- 收包参数 -->
         <div
           v-for="(packet, pIdx) in receivePackets"
           :key="packet.id"
@@ -93,11 +88,11 @@ async function handleCopy(value: string, index: number) {
             <div
               v-for="param in packet.params"
               :key="param.index"
-              class="flex gap-1 px-1 py-0.5 rounded cursor-pointer hover:ring-1 hover:ring-indigo-300 transition-all"
+              class="diff-item-clickable"
               :class="[getHighlightClass(pIdx, param.index, diffIndexSet), copiedIndex === param.index ? 'ring-2 ring-green-400' : '']"
               @click="handleCopy(formatValue(param.hex, param.decimal, param.binary, format), param.index)"
             >
-              <span class="opacity-60 w-8 inline-block">[{{ param.index }}]</span>
+              <span class="param-index">[{{ param.index }}]</span>
               <span>{{ formatValue(param.hex, param.decimal, param.binary, format) }}</span>
             </div>
           </div>
@@ -106,13 +101,3 @@ async function handleCopy(value: string, index: number) {
     </div>
   </div>
 </template>
-
-<style scoped>
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-.animate-fade-in {
-  animation: fade-in 0.2s ease-out;
-}
-</style>

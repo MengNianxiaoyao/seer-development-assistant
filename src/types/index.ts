@@ -58,5 +58,44 @@ export interface ValidationError {
   reasons: string[];
 }
 
+export interface ParsedParam {
+  index: number;
+  value: string;
+  selected: boolean;
+}
+
+export interface ExportData {
+  exportTime: string;
+  validPackets: number;
+  totalParams: number;
+  diffCount: number;
+  packets: Array<{
+    id: number;
+    raw: string;
+    label: string;
+    header: {
+      packetLength: number;
+      version: number;
+      commandId: number;
+      mimiId: number;
+      sequence: number;
+      paramCount: number;
+    };
+    params: Array<{
+      index: number;
+      hex: string;
+      decimal: number;
+      binary: string;
+    }>;
+  }>;
+  diffs: Array<{
+    index: number;
+    hex: string;
+    decimal: number;
+    binary: string;
+  }>;
+}
+
 export type DisplayFormat = "hex" | "decimal" | "binary";
 export type BinaryGroupSize = 1 | 2 | 4 | 8;
+export type ConvertDirection = 'hexToFormat' | 'formatToHex';

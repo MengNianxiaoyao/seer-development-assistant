@@ -142,14 +142,14 @@ onUnmounted(() => {
 
     <!-- Validation Error Modal -->
     <ValidationErrorModal
-      v-if="showValidationModal"
+      v-show="showValidationModal"
       :errors="validationErrors"
       @close="closeValidationModal"
     />
 
     <!-- Alert Modal -->
     <AlertModal
-      v-if="showAlertModal"
+      v-show="showAlertModal"
       :message="alertMessage"
       @close="closeAlertModal"
     />
