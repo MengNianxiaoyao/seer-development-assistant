@@ -1,4 +1,4 @@
-import type { DisplayFormat, BinaryGroupSize, HeaderField, ParsedPacket, DiffResult } from "@/types"
+import type { DisplayFormat, HeaderField, ParsedPacket, DiffResult } from "@/types"
 
 export function hexToBinary(hex: string): string {
   return hex
@@ -47,14 +47,19 @@ export function getHighlightClass(packetIdx: number, paramIdx: number, diffIndex
 
 export function splitByGroupSize(
   hex: string,
-  size: BinaryGroupSize,
+  commandId: number = 0,
 ): { index: number; hex: string; binary: string }[] {
   const clean = cleanHex(hex)
   const groups: { index: number; hex: string; binary: string }[] = []
-  let pos = 0
+  
+  // 42023 使用 2 位分组，其他使用 8 位分组
+  const size = commandId === 42023 ? 2 : 8
+  
+  // 从位置42开始（跳过头部34字符 + 参数数量8字符），只显示参数
+  let pos = 42
   let idx = 1
 
-  while (pos < clean.length) {
+  while (pos + size <= clean.length) {
     const chunk = clean.substring(pos, pos + size).padEnd(size, "0")
     groups.push({
       index: idx,
@@ -62,6 +67,30 @@ export function splitByGroupSize(
       binary: hexToBinary(chunk),
     })
     pos += size
+    idx++
+  }
+
+  return groups
+}
+
+export function splitByGroupSizeFor45866(
+  hex: string,
+): { index: number; hex: string; binary: string }[] {
+  const clean = cleanHex(hex)
+  const groups: { index: number; hex: string; binary: string }[] = []
+  
+  // 45866命令从头部的34字符后开始就是参数
+  let pos = 34
+  let idx = 1
+
+  while (pos + 8 <= clean.length) {
+    const chunk = clean.substring(pos, pos + 8)
+    groups.push({
+      index: idx,
+      hex: chunk,
+      binary: hexToBinary(chunk),
+    })
+    pos += 8
     idx++
   }
 

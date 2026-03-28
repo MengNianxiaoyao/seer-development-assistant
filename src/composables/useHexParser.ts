@@ -23,6 +23,31 @@ export function useHexParser() {
   ] as const
 
   const SPECIAL_COMMAND_ID = 42023
+  const SPECIAL_COMMAND_ID_45866 = 45866
+
+  function parseParams42023(hex: string): ParamItem[] {
+    const params: ParamItem[] = []
+    let offset = 34 // 序列号结束位置
+
+    if (offset + 8 > hex.length) return params
+
+    const paramCount = parseInt(hex.substring(offset, offset + 8), 16)
+    offset += 8
+
+    for (let i = 0; i < paramCount; i++) {
+      if (offset + 2 > hex.length) break
+      const paramHex = hex.substring(offset, offset + 2).padEnd(2, '0')
+      params.push({
+        index: params.length + 1,
+        hex: paramHex,
+        decimal: parseInt(paramHex, 16),
+        binary: hexToBinary(paramHex),
+      })
+      offset += 2
+    }
+
+    return params
+  }
 
   function parseHeader(hex: string): { header: PacketHeader; offset: number } {
     let offset = 0
@@ -45,6 +70,24 @@ export function useHexParser() {
       },
       offset,
     }
+  }
+
+  function parseParams45866(hex: string, startOffset: number): ParamItem[] {
+    const params: ParamItem[] = []
+    let offset = startOffset
+
+    while (offset + 8 <= hex.length) {
+      const paramHex = hex.substring(offset, offset + 8)
+      params.push({
+        index: params.length + 1,
+        hex: paramHex,
+        decimal: parseInt(paramHex, 16),
+        binary: hexToBinary(paramHex),
+      })
+      offset += 8
+    }
+
+    return params
   }
 
   function parseParams(hex: string, offset: number, paramCount: number, commandIdDec: number): ParamItem[] {
@@ -85,9 +128,24 @@ export function useHexParser() {
     const { header, offset } = parseHeader(hex)
     const paramCountDec = header.paramCount.decimal
     const commandIdDec = header.commandId.decimal
-    const isGrouped = paramCountDec > 1
-    const groupSize = commandIdDec === SPECIAL_COMMAND_ID ? 2 : 8
-    const params = parseParams(hex, offset, paramCountDec, commandIdDec)
+
+    let params: ParamItem[]
+    let isGrouped: boolean
+    let groupSize: number
+
+    if (commandIdDec === SPECIAL_COMMAND_ID_45866) {
+      params = parseParams45866(hex, 34)
+      isGrouped = true
+      groupSize = 8
+    } else if (commandIdDec === SPECIAL_COMMAND_ID) {
+      params = parseParams42023(hex)
+      isGrouped = true
+      groupSize = 2
+    } else {
+      isGrouped = paramCountDec > 1
+      groupSize = 8
+      params = parseParams(hex, offset, paramCountDec, commandIdDec)
+    }
 
     return { id, label, raw: hex, header, params, isGrouped, groupSize }
   }
@@ -98,13 +156,11 @@ export function useHexParser() {
 
     const HEADER_LENGTH = 42
     
-    // 如果有发包，使用发包作为基准；否则使用第一个输入作为基准
     const sendPacketIndex = dataInputs.findIndex(i => i.label === '发包')
     const baselineInput = sendPacketIndex >= 0 ? dataInputs[sendPacketIndex] : dataInputs[0]
     const baseline = parseSinglePacket(0, baselineInput.raw, baselineInput.label)
     const errors: ValidationError[] = []
 
-    // 需要校验的输入（排除基准）
     const inputsToValidate = dataInputs.filter(i => i !== baselineInput)
 
     for (const input of inputsToValidate) {
@@ -143,7 +199,6 @@ export function useHexParser() {
       }
     }
 
-    // 检查基准本身的参数数量一致性
     const baselineDeclaredCount = baseline.header.paramCount.decimal
     const baselineActualCount = baseline.params.length
     if (baselineDeclaredCount > 1 && baselineActualCount !== baselineDeclaredCount) {
@@ -160,7 +215,6 @@ export function useHexParser() {
     const enabledInputs = inputs.filter(i => i.enabled && i.raw.trim())
     const packets = enabledInputs.map((input, idx) => parseSinglePacket(idx + 1, input.raw, input.label))
     
-    // 只对收包进行差异比较，发包不参与
     const receivePackets = packets.filter(p => p.label !== '发包')
     const diffs = receivePackets.length >= 2 ? findDifferences(receivePackets) : []
     const totalParams = packets.reduce((sum, p) => sum + p.params.length, 0)

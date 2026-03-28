@@ -32,6 +32,19 @@ const {
   closeAlertModal,
 } = useAnalysis()
 
+const SPECIAL_COMMAND_ID_45866 = 45866
+
+function getParamCount(result: any): number {
+  if (!result?.packets?.length) return 0
+  const first = result.packets[0]
+  const commandId = first.header.commandId.decimal
+  const totalParams = first.params.length
+  if (commandId === SPECIAL_COMMAND_ID_45866) {
+    return Math.max(0, totalParams - 2)
+  }
+  return first.header.paramCount.decimal
+}
+
 function handleKeydown(e: globalThis.KeyboardEvent) {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault()
@@ -134,7 +147,7 @@ onUnmounted(() => {
     <!-- Status Bar -->
     <StatusBar
       :valid-packets="result?.validPackets ?? 0"
-      :param-count="result?.packets?.[0]?.header?.paramCount?.decimal ?? 0"
+      :param-count="getParamCount(result)"
       :diff-count="result?.diffCount ?? 0"
       :analyzed="isAnalyzed"
       :loading="isLoading"

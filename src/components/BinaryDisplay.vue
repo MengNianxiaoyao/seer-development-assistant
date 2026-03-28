@@ -1,32 +1,37 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import RadioGroup from '@/components/RadioGroup.vue'
-import { splitByGroupSize, getHighlightClass } from '@/utils/hex'
-import type { BinaryGroupSize, InputEntry } from '@/types'
+import { computed } from 'vue'
+import { splitByGroupSize, splitByGroupSizeFor45866, getHighlightClass, cleanHex } from '@/utils/hex'
+import type { InputEntry } from '@/types'
 
 const props = defineProps<{
   inputs: InputEntry[]
 }>()
 
-const groupSize = ref<BinaryGroupSize>(8)
-
-const radioOptions = [
-  { value: 1, label: '0' },
-  { value: 2, label: '00' },
-  { value: 4, label: '0000' },
-  { value: 8, label: '00000000' },
-]
+const SPECIAL_COMMAND_ID_45866 = 45866
 
 function getEnabledInputs() {
   return props.inputs.filter(i => i.enabled && i.value.trim() && i.label !== '发包')
 }
 
+function getCommandId(hex: string): number {
+  const clean = cleanHex(hex)
+  if (clean.length < 18) return 0
+  return parseInt(clean.substring(10, 18), 16)
+}
+
 const parsedData = computed(() => {
-  return getEnabledInputs().map(entry => ({
-    id: entry.id,
-    label: entry.label,
-    groups: splitByGroupSize(entry.value, groupSize.value),
-  }))
+  return getEnabledInputs().map(entry => {
+    const commandId = getCommandId(entry.value)
+    const isSpecial45866 = commandId === SPECIAL_COMMAND_ID_45866
+    
+    return {
+      id: entry.id,
+      label: entry.label,
+      groups: isSpecial45866 
+        ? splitByGroupSizeFor45866(entry.value)
+        : splitByGroupSize(entry.value, commandId),
+    }
+  })
 })
 
 const diffIndexSet = computed(() => {
@@ -48,15 +53,13 @@ const diffIndexSet = computed(() => {
 
 <template>
   <div class="panel h-full flex flex-col">
-    <div class="section-title flex items-center gap-3">
+    <div class="section-title">
       <span class="flex items-center gap-2">
         <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
         </svg>
         二进制显示区
       </span>
-      <span class="text-xs text-gray-500">选择十六进制格式:</span>
-      <RadioGroup v-model="groupSize" :options="radioOptions" />
     </div>
 
     <div class="flex-1 overflow-x-auto overflow-y-auto">
