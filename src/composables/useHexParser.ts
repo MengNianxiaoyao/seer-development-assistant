@@ -7,7 +7,6 @@ import type {
   ParsedPacket,
   AnalysisResult,
   ValidationError,
-  DiffResult,
 } from '@/types'
 
 export function useHexParser() {

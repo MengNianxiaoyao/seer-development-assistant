@@ -1,5 +1,95 @@
-# Vue 3 + TypeScript + Vite
+# Seer Development Assistant
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Seer Development Assistant (SDA) 是网页版 **Seer 封包分析小助手**。集合了软件版 **Seer 封包分析小助手** 和 **发包转字节集参数** 全部功能，同时针对痛点进行了优化改进。
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## 功能介绍
+
+### 分析页面
+
+十六进制封包分析与差异对比工具，支持：
+
+- **多封包输入**：支持同时输入多个收包和1个发包
+- **自动解析**：自动解析封包头部信息
+  - 封包长度 (8位十六进制)
+  - 版本号 (2位十六进制)
+  - 命令号 (8位十六进制)
+  - 米米号 (8位十六进制)
+  - 序列号 (8位十六进制)
+  - 参数数量 (8位十六进制)
+- **参数解析**：根据命令号自动识别参数分组（命令号 42023 使用2位分组，其他使用8位分组）
+- **差异对比**：收包之间进行差异分析，高亮显示相异参数
+- **显示格式**：支持十六进制、十进制、二进制三种显示格式
+- **导入导出**：支持导入 JSON 数据和导出分析结果
+- **快捷键**：支持 `Ctrl+Enter` 快速分析
+
+> 注意：发包不参与差异对比，仅作为参考显示
+
+### 转换页面
+
+发包文本与字节集参数互转工具，支持：
+
+- **文本转参数**：将十六进制发包文本转换为字节集参数格式 `{commandId,paramCount,param1,param2,...}`
+- **参数转文本**：将字节集参数转换为十六进制发包文本
+- **参数选择**：支持选择需要转换的特定参数
+
+## 数据格式
+
+### 封包结构
+
+```
+[封包长度 8位] [版本号 2位] [命令号 8位] [米米号 8位] [序列号 8位] [参数数量 8位] [参数数据...]
+```
+
+### 字节集参数格式
+
+```
+{commandId,paramCount,param1,param2,param3,...}
+```
+
+## 技术栈
+
+- Vue 3 (Composition API + `<script setup>`)
+- TypeScript
+- Vite
+- UnoCSS
+
+## 开发
+
+```bash
+# 安装依赖
+pnpm install
+
+# 开发模式
+pnpm dev
+
+# 构建
+pnpm build
+
+# 代码检查
+pnpm lint
+```
+
+## 项目结构
+
+```
+src/
+├── components/          # Vue 组件
+│   ├── AnalyzePage.vue  # 分析页面
+│   ├── ConvertPage.vue  # 转换页面
+│   ├── HexInput.vue     # 十六进制输入
+│   ├── BinaryDisplay.vue
+│   ├── OutputArea.vue   # 输出区域
+│   ├── DiffArea.vue     # 差异对比
+│   ├── HeaderPanel.vue  # 头部信息
+│   ├── ActionPanel.vue  # 操作面板
+│   └── ...
+├── composables/         # 组合式函数
+│   ├── useAnalysis.ts   # 分析逻辑
+│   ├── useConverter.ts  # 转换逻辑
+│   ├── useHexParser.ts  # 十六进制解析
+│   └── usePacketData.ts # 数据处理
+├── utils/
+│   └── hex.ts           # 十六进制工具函数
+└── types/
+    └── index.ts         # TypeScript 类型定义
+```
