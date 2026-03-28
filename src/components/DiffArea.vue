@@ -83,7 +83,7 @@ function getDiffParams(packets: AnalysisResult["packets"], diffIndex: number) {
             :class="dp.color"
           >
             <span class="opacity-60">{{ dp.label }}</span>
-            <span>[{{ diff.index }}]</span>
+            <span class="w-8">[{{ diff.index }}]</span>
             <span>{{ dp.value }}</span>
           </div>
         </div>

@@ -134,7 +134,7 @@ function getHighlightClass(packetIdx: number, paramIdx: number): string {
               class="flex gap-1 px-1 py-0.5 rounded"
               :class="getHighlightClass(pIdx, group.index)"
             >
-              <span class="opacity-60">[{{ group.index }}]</span>
+              <span class="opacity-60 w-8 inline-block">[{{ group.index }}]</span>
               <span>{{ group.binary }}</span>
             </div>
           </div>

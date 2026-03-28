@@ -18,10 +18,12 @@ const { result, isAnalyzed, validate, analyze, reset: resetParser } = useHexPars
 const activeTab = ref<'analyze' | 'convert'>('analyze')
 
 const inputs = ref<InputEntry[]>([
-  { id: 1, label: '输入1', value: '', enabled: true },
-  { id: 2, label: '输入2', value: '', enabled: true },
-  { id: 3, label: '输入3', value: '', enabled: true },
+  { id: 1, label: '收包1', value: '', enabled: true },
+  { id: 2, label: '收包2', value: '', enabled: true },
+  { id: 3, label: '收包3', value: '', enabled: true },
 ])
+
+const sendPacket = ref('')
 
 const displayFormat = ref<DisplayFormat>('hex')
 const validationErrors = ref<ValidationError[]>([])
@@ -31,11 +33,21 @@ const showAlertModal = ref(false)
 
 function handleAnalyze() {
   const dataInputs = inputs.value.filter(i => i.value.trim())
-  if (dataInputs.length === 0) return
+  const hasSendPacket = sendPacket.value.trim().length > 0
+
+  if (dataInputs.length === 0 && !hasSendPacket) return
 
   displayFormat.value = 'hex'
 
-  const errors = validate(dataInputs.map(i => ({ raw: i.value, enabled: i.enabled, label: i.label })))
+  // Collect all inputs including send packet
+  const allInputs = [...dataInputs.map(i => ({ raw: i.value, enabled: i.enabled, label: i.label }))]
+
+  // If send packet exists, add it as first input
+  if (hasSendPacket) {
+    allInputs.unshift({ raw: sendPacket.value, enabled: true, label: '发包' })
+  }
+
+  const errors = validate(allInputs)
 
   if (errors.length > 0) {
     validationErrors.value = errors
@@ -43,7 +55,7 @@ function handleAnalyze() {
     return
   }
 
-  analyze(dataInputs.map(i => ({ raw: i.value, enabled: i.enabled, label: i.label })))
+  analyze(allInputs)
 }
 
 function closeValidationModal() {
@@ -58,10 +70,11 @@ function closeAlertModal() {
 
 function handleReset() {
   inputs.value = [
-    { id: 1, label: '输入1', value: '', enabled: true },
-    { id: 2, label: '输入2', value: '', enabled: true },
-    { id: 3, label: '输入3', value: '', enabled: true },
+    { id: 1, label: '收包1', value: '', enabled: true },
+    { id: 2, label: '收包2', value: '', enabled: true },
+    { id: 3, label: '收包3', value: '', enabled: true },
   ]
+  sendPacket.value = ''
   displayFormat.value = 'hex'
   resetParser()
 }
@@ -259,7 +272,7 @@ function handleImportError() {
       <!-- Top Row: Input + Actions + Binary Display -->
       <div class="flex gap-3" style="height: 280px;">
         <div class="w-[45%]">
-          <HexInput v-model:inputs="inputs" />
+          <HexInput v-model:inputs="inputs" v-model:sendPacket="sendPacket" />
         </div>
         <div class="w-[10%]">
           <ActionPanel

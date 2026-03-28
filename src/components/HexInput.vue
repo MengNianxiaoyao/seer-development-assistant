@@ -5,13 +5,14 @@ import Button from "@/components/Button.vue";
 import type { InputEntry } from "@/types";
 
 const inputs = defineModel<InputEntry[]>("inputs", { required: true });
+const sendPacket = defineModel<string>("sendPacket", { required: true });
 
 let nextId = inputs.value.length + 1;
 
 function addInput() {
   inputs.value.push({
     id: nextId++,
-    label: `输入${inputs.value.length + 1}`,
+    label: `收包${inputs.value.length + 1}`,
     value: "",
     enabled: true,
   });
@@ -25,7 +26,7 @@ function removeInput(id: number) {
 
 function reindexLabels() {
   inputs.value.forEach((entry, idx) => {
-    entry.label = `输入${idx + 1}`;
+    entry.label = `收包${idx + 1}`;
   });
 }
 </script>
@@ -72,6 +73,14 @@ function reindexLabels() {
       class="flex-1 overflow-y-auto space-y-2 pr-1"
       style="max-height: 220px"
     >
+      <!-- 发包输入 -->
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-orange-500 w-14 flex-shrink-0 font-semibold">发包</span>
+        <Input v-model="sendPacket" class="flex-1 min-w-0" placeholder="请输入发包" />
+      </div>
+      <!-- 分隔线 -->
+      <div class="border-t border-gray-200 border-dashed my-1"></div>
+      <!-- 收包输入 -->
       <div
         v-for="entry in inputs"
         :key="entry.id"
@@ -81,7 +90,7 @@ function reindexLabels() {
         <span class="text-xs text-gray-500 w-14 flex-shrink-0 font-medium">{{
           entry.label
         }}</span>
-        <Input v-model="entry.value" class="flex-1 min-w-0" />
+        <Input v-model="entry.value" class="flex-1 min-w-0" placeholder="请输入收包" />
         <span
           v-if="inputs.indexOf(entry) === 0"
           class="w-[40px] flex-shrink-0"
