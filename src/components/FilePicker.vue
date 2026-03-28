@@ -65,6 +65,7 @@ onUnmounted(() => {
   <div
     class="rounded-lg transition-all duration-200"
     :class="isDragging ? 'ring-2 ring-purple-400 ring-offset-1' : ''"
+    @drop.prevent="handleDrop"
   >
     <Button type="primary" class="w-full" @click="handleClick">
       <span class="flex items-center justify-center gap-1.5">
