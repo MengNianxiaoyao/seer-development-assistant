@@ -16,7 +16,7 @@ export default defineConfig({
   shortcuts: {
     // Layout
     'panel': 'bg-white/90 backdrop-blur-sm rounded-xl shadow-lg shadow-black/5 border border-gray-100 p-4',
-    'card': 'bg-white border border-gray-200/80 rounded-lg p-3 text-xs font-mono shadow-sm hover:shadow-md hover:border-gray-300/80 transition-all duration-200',
+    'card': 'bg-gray-100 border border-gray-200 rounded-lg p-3 text-xs font-mono shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200',
     'section-title': 'text-sm font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-100 flex items-center gap-2',
 
     // Buttons
@@ -35,14 +35,6 @@ export default defineConfig({
     'checkbox-box': 'w-[18px] h-[18px] rounded-[5px] border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200',
     'checkbox-checked': 'bg-gradient-to-br from-purple-500 to-violet-600 border-purple-500 shadow-md shadow-purple-500/30 scale-100',
     'checkbox-unchecked': 'bg-gray-200 border-gray-500 shadow-sm hover:border-purple-400 hover:shadow-md',
-
-    // Modal
-    'modal-overlay': 'fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-modal-fade-in',
-    'modal-container': 'bg-white rounded-2xl shadow-2xl overflow-hidden animate-modal-scale-in',
-    'modal-header': 'px-5 py-4 border-b border-gray-100 flex items-center justify-between',
-    'modal-body': 'px-5 py-5',
-    'modal-footer': 'px-5 py-4 border-t border-gray-100 flex justify-end bg-gray-50/50',
-    'modal-close': 'w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 cursor-pointer transition-colors text-lg leading-none',
 
     // Highlight states
     'highlight-green': 'bg-green-100 text-green-700',
