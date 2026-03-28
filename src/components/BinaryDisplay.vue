@@ -64,7 +64,7 @@ const diffIndexSet = computed(() => {
 
     <div class="flex-1 overflow-x-auto overflow-y-auto">
       <div v-if="parsedData.length === 0" class="text-gray-400 text-xs text-center py-4">
-        暂无输入数据
+        暂无收包数据
       </div>
       <div v-else class="flex gap-2">
         <div v-for="(data, pIdx) in parsedData" :key="data.id" class="card inline-block flex-shrink-0">

@@ -29,6 +29,10 @@ export interface ParsedPacket {
   params: ParamItem[];
   isGrouped: boolean;
   groupSize: number;
+  // Optional: body segment views split from the packet body (after header)
+  bodySegments1?: { index: number; hex: string; decimal: number; binary: string }[]
+  bodySegments2?: { index: number; hex: string; decimal: number; binary: string }[]
+  bodySegments4?: { index: number; hex: string; decimal: number; binary: string }[]
 }
 
 export interface DiffResult {
