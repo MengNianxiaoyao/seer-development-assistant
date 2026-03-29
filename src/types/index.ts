@@ -55,6 +55,7 @@ export interface InputEntry {
   label: string;
   value: string;
   enabled: boolean;
+  order: number;
 }
 
 export interface ValidationError {

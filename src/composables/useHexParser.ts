@@ -138,14 +138,34 @@ export function useHexParser() {
   }
 
   function validate(
-    inputs: { raw: string; enabled: boolean; label: string }[],
+    inputs: { raw: string; enabled: boolean; label: string; order?: number }[],
   ): ValidationError[] {
     const dataInputs = inputs.filter((i) => i.enabled && i.raw.trim());
-    if (dataInputs.length < 2) return [];
+    if (dataInputs.length < 1) return [];
 
-    const sendPacketIndex = dataInputs.findIndex((i) => i.label === "发包");
-    const baselineInput =
-      sendPacketIndex >= 0 ? dataInputs[sendPacketIndex] : dataInputs[0];
+    const cleanedInputs = dataInputs.map((i) => ({
+      ...i,
+      raw: cleanHex(i.raw),
+    }));
+
+    const receivePackets = cleanedInputs
+      .filter((i) => i.label !== "发包")
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    const sendPacket = cleanedInputs.find((i) => i.label === "发包");
+
+    let baselineInput: (typeof cleanedInputs)[0] | undefined;
+
+    if (receivePackets.length > 0) {
+      baselineInput = receivePackets[0];
+    } else if (sendPacket) {
+      baselineInput = sendPacket;
+    }
+
+    if (!baselineInput || cleanHex(baselineInput.raw).length < 34) {
+      return [];
+    }
+
     const baseline = parseSinglePacket(
       0,
       baselineInput.raw,
@@ -153,7 +173,10 @@ export function useHexParser() {
     );
     const errors: ValidationError[] = [];
 
-    for (const input of dataInputs.filter((i) => i !== baselineInput)) {
+    for (const input of cleanedInputs.filter((i) => i !== baselineInput)) {
+      const hex = cleanHex(input.raw);
+      if (hex.length < 34) continue;
+
       const current = parseSinglePacket(0, input.raw, input.label);
       const reasons: string[] = [];
 

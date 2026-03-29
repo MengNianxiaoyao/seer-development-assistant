@@ -53,7 +53,7 @@ const {
             <textarea
               v-model="hexToFormatInput"
               class="w-full h-20 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-mono focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50/50 focus:outline-none shadow-sm transition-all"
-              placeholder="请输入发包文本"
+              placeholder="请输入发包文本，如 110000680000..."
             />
             <span
               class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-gray-100 rounded text-[10px] text-gray-400 font-mono"

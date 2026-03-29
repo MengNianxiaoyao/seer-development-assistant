@@ -8,7 +8,6 @@ import HeaderPanel from "@/components/HeaderPanel.vue";
 import ValidationErrorModal from "@/components/ValidationErrorModal.vue";
 import AlertModal from "@/components/AlertModal.vue";
 import { useAnalysis } from "@/composables/useAnalysis";
-import { useCtrlEnter } from "@/composables/useKeyboard";
 import { formatParamCount } from "@/utils/hex";
 
 import { computed, watch } from "vue";
@@ -26,8 +25,6 @@ const emit = defineEmits<{
 }>();
 
 const {
-  inputs,
-  sendPacket,
   displayFormat,
   isLoading,
   result,
@@ -36,7 +33,6 @@ const {
   showValidationModal,
   alertMessage,
   showAlertModal,
-  handleAnalyze,
   handleReset,
   handleConvertDecimal,
   handleExport,
@@ -44,8 +40,6 @@ const {
   closeValidationModal,
   closeAlertModal,
 } = useAnalysis();
-
-useCtrlEnter(handleAnalyze);
 
 const paramCountText = computed(() => {
   if (!result.value) return "0";
@@ -73,13 +67,12 @@ watch(
       <!-- Mobile Layout -->
       <div class="md:hidden flex flex-col gap-2 flex-1 min-h-0">
         <div class="flex-shrink-0" style="height: 200px">
-          <HexInput v-model:inputs="inputs" v-model:sendPacket="sendPacket" />
+          <HexInput />
         </div>
         <div class="flex-shrink-0">
           <ActionPanel
             @import-file="handleImportFile"
             @export="handleExport"
-            @analyze="handleAnalyze"
             @convert-decimal="handleConvertDecimal"
             @reset="handleReset"
           />
@@ -104,13 +97,12 @@ watch(
       <div class="hidden md:flex flex-col gap-3 flex-1 min-h-0">
         <div class="flex gap-3 flex-shrink-0" style="height: 280px">
           <div class="w-[45%] min-w-0">
-            <HexInput v-model:inputs="inputs" v-model:sendPacket="sendPacket" />
+            <HexInput />
           </div>
           <div class="w-[10%] min-w-0">
             <ActionPanel
               @import-file="handleImportFile"
               @export="handleExport"
-              @analyze="handleAnalyze"
               @convert-decimal="handleConvertDecimal"
               @reset="handleReset"
             />

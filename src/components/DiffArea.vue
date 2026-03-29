@@ -61,9 +61,22 @@ function hasParam(packet: { params: ParamItem[] }, index: number): boolean {
 
     <div
       v-if="!result || !hasDiffParams"
-      class="text-gray-400 text-xs text-center py-4 flex-1"
+      class="h-full flex flex-col items-center justify-center text-gray-400"
     >
-      暂无相异参数
+      <svg
+        class="w-10 h-10 mb-2 opacity-40"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      <span class="text-xs">暂无相异参数</span>
     </div>
 
     <div v-else class="flex-1 overflow-x-auto overflow-y-auto">

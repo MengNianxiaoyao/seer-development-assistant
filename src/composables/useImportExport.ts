@@ -16,6 +16,7 @@ function parseHexStrings(hexStrings: string[]): InputEntry[] {
       label: `收包${idx + 1}`,
       value: hex,
       enabled: true,
+      order: idx + 1,
     }));
 }
 
@@ -45,11 +46,12 @@ function restoreFromExportData(data: ExportData): {
           label: p.label.startsWith("收包") ? p.label : `收包${idx + 1}`,
           value: p.raw,
           enabled: true,
+          order: idx + 1,
         }))
       : [
-          { id: 1, label: "收包1", value: "", enabled: true },
-          { id: 2, label: "收包2", value: "", enabled: true },
-          { id: 3, label: "收包3", value: "", enabled: true },
+          { id: 1, label: "收包1", value: "", enabled: true, order: 1 },
+          { id: 2, label: "收包2", value: "", enabled: true, order: 2 },
+          { id: 3, label: "收包3", value: "", enabled: true, order: 3 },
         ];
 
   return {

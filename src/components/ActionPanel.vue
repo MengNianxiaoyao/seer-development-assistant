@@ -4,7 +4,6 @@ import Button from "@/components/Button.vue";
 
 const emit = defineEmits<{
   export: [];
-  analyze: [];
   convertDecimal: [];
   reset: [];
   importFile: [content: string];
@@ -41,25 +40,6 @@ function handleFileSelected(file: File) {
     </div>
 
     <div class="space-y-1.5 -mt-1">
-      <Button type="primary" class="w-full" @click="emit('analyze')">
-        <span class="flex items-center justify-center gap-1.5">
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-          开始分析
-        </span>
-      </Button>
-
       <Button type="warning" class="w-full" @click="emit('convertDecimal')">
         <span class="flex items-center justify-center gap-1.5">
           <svg

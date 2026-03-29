@@ -3,14 +3,18 @@ import { computed } from "vue";
 import Checkbox from "@/components/Checkbox.vue";
 import Input from "@/components/Input.vue";
 import Button from "@/components/Button.vue";
-import type { InputEntry } from "@/types";
+import { useInputData } from "@/composables/useAnalysis";
 
-const inputs = defineModel<InputEntry[]>("inputs", { required: true });
-const sendPacket = defineModel<string>("sendPacket", { required: true });
+const { inputs, sendPacket } = useInputData();
 
 const maxId = computed(() => {
   if (inputs.value.length === 0) return 0;
   return Math.max(...inputs.value.map((i) => i.id));
+});
+
+const maxOrder = computed(() => {
+  if (inputs.value.length === 0) return 0;
+  return Math.max(...inputs.value.map((i) => i.order || 0));
 });
 
 function addInput() {
@@ -19,6 +23,7 @@ function addInput() {
     label: `收包${inputs.value.length + 1}`,
     value: "",
     enabled: true,
+    order: maxOrder.value + 1,
   });
 }
 

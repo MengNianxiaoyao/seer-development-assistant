@@ -35,7 +35,6 @@ const emit = defineEmits<{
             :key="idx"
             class="text-xs text-red-500 flex items-start gap-1.5"
           >
-            <span class="text-red-300 mt-0.5">·</span>
             <span>{{ reason }}</span>
           </div>
         </div>
