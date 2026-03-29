@@ -1,9 +1,9 @@
 <script setup lang="ts">
 defineProps<{
-  placeholder?: string;
-}>();
+  placeholder?: string
+}>()
 
-const model = defineModel<string>({ required: true });
+const model = defineModel<string>({ required: true })
 </script>
 
 <template>
@@ -12,5 +12,5 @@ const model = defineModel<string>({ required: true });
     type="text"
     :placeholder="placeholder"
     class="input-base"
-  />
+  >
 </template>

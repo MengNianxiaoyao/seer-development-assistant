@@ -1,9 +1,9 @@
 <script setup lang="ts">
 defineProps<{
-  options: { value: number | string; label: string }[];
-}>();
+  options: { value: number | string, label: string }[]
+}>()
 
-const model = defineModel<number | string>({ required: true });
+const model = defineModel<number | string>({ required: true })
 </script>
 
 <template>

@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed } from 'vue'
 
-declare const __APP_VERSION__: string;
+declare const __APP_VERSION__: string
 
 defineProps<{
-  validPackets: number;
-  paramCount: string;
-  diffCount: number;
-  analyzed: boolean;
-  loading?: boolean;
-  showInfo?: boolean;
-}>();
+  validPackets: number
+  paramCount: string
+  diffCount: number
+  analyzed: boolean
+  loading?: boolean
+  showInfo?: boolean
+}>()
 
-const version = computed(() => __APP_VERSION__);
+const version = computed(() => __APP_VERSION__)
 </script>
 
 <template>
@@ -42,7 +42,7 @@ const version = computed(() => __APP_VERSION__);
       </span>
       <span v-else class="text-gray-400">就绪（Ctrl+Enter 快速分析）</span>
     </template>
-    <span v-else></span>
+    <span v-else />
     <span class="text-gray-500">v{{ version }}</span>
   </div>
 </template>

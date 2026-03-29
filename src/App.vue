@@ -1,29 +1,31 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
-import Button from "@/components/Button.vue";
-import ConvertPage from "@/components/ConvertPage.vue";
-import AnalyzePage from "@/components/AnalyzePage.vue";
-import StatusBar from "@/components/StatusBar.vue";
+import { reactive, ref } from 'vue'
+import AnalyzePage from '@/components/AnalyzePage.vue'
+import Button from '@/components/Button.vue'
+import ConvertPage from '@/components/ConvertPage.vue'
+import StatusBar from '@/components/StatusBar.vue'
 
-const activeTab = ref<"analyze" | "convert">("analyze");
+const activeTab = ref<'analyze' | 'convert'>('analyze')
 
 const analyzeStatus = reactive({
   validPackets: 0,
-  paramCount: "0",
+  paramCount: '0',
   diffCount: 0,
   analyzed: false,
   loading: false,
-});
+})
 
 function handleStatusChange(status: typeof analyzeStatus) {
-  Object.assign(analyzeStatus, status);
+  Object.assign(analyzeStatus, status)
 }
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-100 flex flex-col">
     <header class="page-header">
-      <h1 class="page-title">分析助手</h1>
+      <h1 class="page-title">
+        分析助手
+      </h1>
       <div class="flex gap-1 md:gap-2">
         <Button
           :type="activeTab === 'analyze' ? 'primary' : 'default'"

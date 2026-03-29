@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import Button from "@/components/Button.vue";
-import ParamSelector from "@/components/ParamSelector.vue";
-import ConvertResult from "@/components/ConvertResult.vue";
-import { useConverter } from "@/composables/useConverter";
+import Button from '@/components/Button.vue'
+import ConvertResult from '@/components/ConvertResult.vue'
+import ParamSelector from '@/components/ParamSelector.vue'
+import { useConverter } from '@/composables/useConverter'
 
 const {
   hexToFormatInput,
@@ -20,7 +20,7 @@ const {
   formatToHexError,
   hasFormatToHexResult,
   handleFormatToHexReset,
-} = useConverter();
+} = useConverter()
 </script>
 
 <template>
@@ -57,15 +57,14 @@ const {
             />
             <span
               class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-gray-100 rounded text-[10px] text-gray-400 font-mono"
-              >{{ hexToFormatInput.length }} 字符</span
-            >
+            >{{ hexToFormatInput.length }} 字符</span>
           </div>
         </div>
 
         <div class="flex gap-2">
-          <Button type="danger" class="flex-1" @click="handleHexToFormatReset"
-            >重置</Button
-          >
+          <Button type="danger" class="flex-1" @click="handleHexToFormatReset">
+            重置
+          </Button>
         </div>
 
         <div
@@ -137,15 +136,14 @@ const {
             />
             <span
               class="absolute bottom-2 right-2 px-1.5 py-0.5 bg-gray-100 rounded text-[10px] text-gray-400 font-mono"
-              >{{ formatToHexInput.length }} 字符</span
-            >
+            >{{ formatToHexInput.length }} 字符</span>
           </div>
         </div>
 
         <div class="flex gap-2">
-          <Button type="primary" class="flex-1" @click="handleFormatToHexReset"
-            >重置</Button
-          >
+          <Button type="primary" class="flex-1" @click="handleFormatToHexReset">
+            重置
+          </Button>
         </div>
 
         <div

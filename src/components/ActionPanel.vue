@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import FilePicker from "@/components/FilePicker.vue";
-import Button from "@/components/Button.vue";
+import Button from '@/components/Button.vue'
+import FilePicker from '@/components/FilePicker.vue'
 
 const emit = defineEmits<{
-  export: [];
-  convertDecimal: [];
-  reset: [];
-  importFile: [content: string];
-}>();
+  export: []
+  convertDecimal: []
+  reset: []
+  importFile: [content: string]
+}>()
 
 function handleFileSelected(file: File) {
-  const reader = new FileReader();
+  const reader = new FileReader()
   reader.onload = () => {
-    emit("importFile", reader.result as string);
-  };
-  reader.readAsText(file);
+    emit('importFile', reader.result as string)
+  }
+  reader.readAsText(file)
 }
 </script>
 

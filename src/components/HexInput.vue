@@ -1,42 +1,45 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import Checkbox from "@/components/Checkbox.vue";
-import Input from "@/components/Input.vue";
-import Button from "@/components/Button.vue";
-import { useInputData } from "@/composables/useAnalysis";
+import { computed } from 'vue'
+import Button from '@/components/Button.vue'
+import Checkbox from '@/components/Checkbox.vue'
+import Input from '@/components/Input.vue'
+import { useInputData } from '@/composables/useAnalysis'
 
-const { inputs, sendPacket } = useInputData();
+const { inputs, sendPacket } = useInputData()
 
 const maxId = computed(() => {
-  if (inputs.value.length === 0) return 0;
-  return Math.max(...inputs.value.map((i) => i.id));
-});
+  if (inputs.value.length === 0)
+    return 0
+  return Math.max(...inputs.value.map(i => i.id))
+})
 
 const maxOrder = computed(() => {
-  if (inputs.value.length === 0) return 0;
-  return Math.max(...inputs.value.map((i) => i.order || 0));
-});
+  if (inputs.value.length === 0)
+    return 0
+  return Math.max(...inputs.value.map(i => i.order || 0))
+})
 
 function addInput() {
   inputs.value.push({
     id: maxId.value + 1,
     label: `收包${inputs.value.length + 1}`,
-    value: "",
+    value: '',
     enabled: true,
     order: maxOrder.value + 1,
-  });
+  })
 }
 
 function removeInput(id: number) {
-  if (inputs.value.length <= 1) return;
-  inputs.value = inputs.value.filter((i) => i.id !== id);
-  reindexLabels();
+  if (inputs.value.length <= 1)
+    return
+  inputs.value = inputs.value.filter(i => i.id !== id)
+  reindexLabels()
 }
 
 function reindexLabels() {
   inputs.value.forEach((entry, idx) => {
-    entry.label = `收包${idx + 1}`;
-  });
+    entry.label = `收包${idx + 1}`
+  })
 }
 </script>
 
@@ -84,9 +87,7 @@ function reindexLabels() {
     >
       <!-- 发包输入 -->
       <div class="flex items-center gap-2">
-        <span class="text-xs text-orange-500 w-14 flex-shrink-0 font-semibold"
-          >发包</span
-        >
+        <span class="text-xs text-orange-500 w-14 flex-shrink-0 font-semibold">发包</span>
         <Input
           v-model="sendPacket"
           class="flex-1 min-w-0"
@@ -94,7 +95,7 @@ function reindexLabels() {
         />
       </div>
       <!-- 分隔线 -->
-      <div class="border-t border-gray-200 border-dashed my-1"></div>
+      <div class="border-t border-gray-200 border-dashed my-1" />
       <!-- 收包输入 -->
       <div
         v-for="(entry, index) in inputs"
@@ -110,7 +111,7 @@ function reindexLabels() {
           class="flex-1 min-w-0"
           placeholder="请输入收包"
         />
-        <span v-if="index === 0" class="w-[40px] flex-shrink-0"></span>
+        <span v-if="index === 0" class="w-[40px] flex-shrink-0" />
         <Button v-else type="danger" size="sm" @click="removeInput(entry.id)">
           <span class="icon-btn">
             <svg

@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { useEscapeKey } from "@/composables/useKeyboard";
+import { useEscapeKey } from '@/composables/useKeyboard'
 
 defineProps<{
-  title?: string;
-  icon?: "info" | "warning" | "error";
-  width?: string;
-}>();
+  title?: string
+  icon?: 'info' | 'warning' | 'error'
+  width?: string
+}>()
 
 const emit = defineEmits<{
-  close: [];
-}>();
+  close: []
+}>()
 
-useEscapeKey(() => emit("close"));
+useEscapeKey(() => emit('close'))
 </script>
 
 <template>

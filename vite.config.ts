@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import vue from '@vitejs/plugin-vue'
 import UnoCSS from 'unocss/vite'
-import { resolve } from 'path'
-import { readFileSync } from 'fs'
+import { defineConfig } from 'vite'
 
 const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'))
 

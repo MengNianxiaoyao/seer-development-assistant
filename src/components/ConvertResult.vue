@@ -1,28 +1,29 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import Button from "@/components/Button.vue";
-import { copyToClipboard } from "@/utils/hex";
+import { ref } from 'vue'
+import Button from '@/components/Button.vue'
+import { copyToClipboard } from '@/utils/hex'
 
 const props = defineProps<{
-  output: string;
-  label?: string;
-}>();
+  output: string
+  label?: string
+}>()
 
 const emit = defineEmits<{
-  copy: [];
-}>();
+  copy: []
+}>()
 
-const copied = ref(false);
+const copied = ref(false)
 
 async function handleCopy() {
-  if (!props.output) return;
-  const success = await copyToClipboard(props.output);
+  if (!props.output)
+    return
+  const success = await copyToClipboard(props.output)
   if (success) {
-    copied.value = true;
-    emit("copy");
+    copied.value = true
+    emit('copy')
     setTimeout(() => {
-      copied.value = false;
-    }, 1500);
+      copied.value = false
+    }, 1500)
   }
 }
 </script>

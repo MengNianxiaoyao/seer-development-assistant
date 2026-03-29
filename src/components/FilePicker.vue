@@ -1,64 +1,64 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
-import Button from "@/components/Button.vue";
+import { onMounted, onUnmounted, ref } from 'vue'
+import Button from '@/components/Button.vue'
 
 const emit = defineEmits<{
-  selected: [file: File];
-}>();
+  selected: [file: File]
+}>()
 
-const fileInput = ref<HTMLInputElement>();
-const isDragging = ref(false);
+const fileInput = ref<HTMLInputElement>()
+const isDragging = ref(false)
 
 function handleClick() {
-  fileInput.value?.click();
+  fileInput.value?.click()
 }
 
 function handleChange(e: Event) {
-  const input = e.target as HTMLInputElement;
+  const input = e.target as HTMLInputElement
   if (input.files?.length) {
-    emit("selected", input.files[0]);
-    input.value = "";
+    emit('selected', input.files[0])
+    input.value = ''
   }
 }
 
 function handleDrop(e: DragEvent) {
-  isDragging.value = false;
+  isDragging.value = false
   if (e.dataTransfer?.files.length) {
-    emit("selected", e.dataTransfer.files[0]);
+    emit('selected', e.dataTransfer.files[0])
   }
 }
 
 function handleWindowDragOver(e: DragEvent) {
-  e.preventDefault();
-  isDragging.value = true;
+  e.preventDefault()
+  isDragging.value = true
 }
 
 function handleWindowDragLeave(e: DragEvent) {
   // 只有当拖拽完全离开窗口时才设置为false
   if (e.relatedTarget === null) {
-    isDragging.value = false;
+    isDragging.value = false
   }
 }
 
 function handleWindowDrop(e: DragEvent) {
-  e.preventDefault();
-  isDragging.value = false;
+  e.preventDefault()
+  isDragging.value = false
   if (e.dataTransfer?.files.length) {
-    emit("selected", e.dataTransfer.files[0]);
+    emit('selected', e.dataTransfer.files[0])
   }
 }
 
 onMounted(() => {
-  window.addEventListener("dragover", handleWindowDragOver);
-  window.addEventListener("dragleave", handleWindowDragLeave);
-  window.addEventListener("drop", handleWindowDrop);
-});
+  window.addEventListener('dragover', handleWindowDragOver)
+  window.addEventListener('dragleave', handleWindowDragLeave)
+  window.addEventListener('drop', handleWindowDrop)
+})
 
 onUnmounted(() => {
-  window.removeEventListener("dragover", handleWindowDragOver);
-  window.removeEventListener("dragleave", handleWindowDragLeave);
-  window.removeEventListener("drop", handleWindowDrop);
-});
+  window.removeEventListener('dragover', handleWindowDragOver)
+  window.removeEventListener('dragleave', handleWindowDragLeave)
+  window.removeEventListener('drop', handleWindowDrop)
+})
 </script>
 
 <template>
@@ -91,6 +91,6 @@ onUnmounted(() => {
       accept=".json"
       class="hidden"
       @change="handleChange"
-    />
+    >
   </div>
 </template>

@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import Button from "@/components/Button.vue";
-import Checkbox from "@/components/Checkbox.vue";
+import Button from '@/components/Button.vue'
+import Checkbox from '@/components/Checkbox.vue'
 
 interface Param {
-  index: number;
-  value: string;
-  selected: boolean;
+  index: number
+  value: string
+  selected: boolean
 }
 
 const props = defineProps<{
-  params: Param[];
-  filteredCount: number;
-}>();
+  params: Param[]
+  filteredCount: number
+}>()
 
 const emit = defineEmits<{
-  selectAll: [];
-  deselectAll: [];
-  toggle: [index: number];
-}>();
+  selectAll: []
+  deselectAll: []
+  toggle: [index: number]
+}>()
 
 function toggleParam(index: number) {
-  emit("toggle", index);
+  emit('toggle', index)
 }
 </script>
 
@@ -49,12 +49,12 @@ function toggleParam(index: number) {
         </span>
       </div>
       <div class="flex gap-2">
-        <Button type="primary" size="sm" @click="emit('selectAll')"
-          >全选</Button
-        >
-        <Button type="primary" size="sm" @click="emit('deselectAll')"
-          >取消</Button
-        >
+        <Button type="primary" size="sm" @click="emit('selectAll')">
+          全选
+        </Button>
+        <Button type="primary" size="sm" @click="emit('deselectAll')">
+          取消
+        </Button>
       </div>
     </div>
     <div
@@ -64,8 +64,7 @@ function toggleParam(index: number) {
         <div
           v-for="param in params"
           :key="param.index"
-          :class="[
-            'flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer select-none transition-all duration-200',
+          class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer select-none transition-all duration-200" :class="[
             param.selected
               ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25 scale-[1.02]'
               : 'bg-white border border-gray-200 hover:border-indigo-300 hover:shadow-sm',
@@ -82,8 +81,7 @@ function toggleParam(index: number) {
           <span
             class="text-xs font-mono"
             :class="param.selected ? 'text-indigo-100' : 'text-gray-400'"
-            >:</span
-          >
+          >:</span>
           <span
             class="text-xs font-mono font-semibold"
             :class="param.selected ? 'text-white' : 'text-gray-800'"

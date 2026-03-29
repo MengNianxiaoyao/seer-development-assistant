@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import BaseModal from "@/components/BaseModal.vue";
-import Button from "@/components/Button.vue";
-import type { ValidationError } from "@/types";
+import type { ValidationError } from '@/types'
+import BaseModal from '@/components/BaseModal.vue'
+import Button from '@/components/Button.vue'
 
 defineProps<{
-  errors: ValidationError[];
-}>();
+  errors: ValidationError[]
+}>()
 
 const emit = defineEmits<{
-  close: [];
-}>();
+  close: []
+}>()
 </script>
 
 <template>
@@ -24,7 +24,7 @@ const emit = defineEmits<{
         <div
           class="text-xs font-semibold text-gray-700 mb-1.5 inline-flex items-center gap-1.5"
         >
-          <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-red-400" />
           {{ err.label }}
         </div>
         <div
@@ -41,7 +41,9 @@ const emit = defineEmits<{
       </div>
     </div>
     <template #footer>
-      <Button @click="emit('close')">关闭</Button>
+      <Button @click="emit('close')">
+        关闭
+      </Button>
     </template>
   </BaseModal>
 </template>

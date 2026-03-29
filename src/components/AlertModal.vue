@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import BaseModal from "@/components/BaseModal.vue";
-import Button from "@/components/Button.vue";
+import BaseModal from '@/components/BaseModal.vue'
+import Button from '@/components/Button.vue'
 
 defineProps<{
-  message: string;
-}>();
+  message: string
+}>()
 
 const emit = defineEmits<{
-  close: [];
-}>();
+  close: []
+}>()
 </script>
 
 <template>
@@ -19,7 +19,9 @@ const emit = defineEmits<{
       </p>
     </div>
     <template #footer>
-      <Button type="primary" @click="emit('close')">确定</Button>
+      <Button type="primary" @click="emit('close')">
+        确定
+      </Button>
     </template>
   </BaseModal>
 </template>

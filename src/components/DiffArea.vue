@@ -1,40 +1,41 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { formatValue, getHighlightClass } from "@/utils/hex";
-import { usePacketData } from "@/composables/usePacketData";
-import type { AnalysisResult, DisplayFormat, ParamItem } from "@/types";
+import type { AnalysisResult, DisplayFormat, ParamItem } from '@/types'
+import { computed } from 'vue'
+import { usePacketData } from '@/composables/usePacketData'
+import { formatValue, getHighlightClass } from '@/utils/hex'
 
 const props = defineProps<{
-  result: AnalysisResult | null;
-  format: DisplayFormat;
-}>();
+  result: AnalysisResult | null
+  format: DisplayFormat
+}>()
 
 const { diffPackets, diffIndexSet, hasDiffParams } = usePacketData(
   computed(() => props.result),
-);
+)
 
 const diffIndices = computed(() => {
-  return [...diffIndexSet.value].sort((a, b) => a - b);
-});
+  return [...diffIndexSet.value].sort((a, b) => a - b)
+})
 
 function getParamValue(
   packet: { params: ParamItem[] },
   index: number,
 ): ParamItem | undefined {
-  return packet.params.find((p) => p.index === index);
+  return packet.params.find(p => p.index === index)
 }
 
 function formatParamValue(
   packet: { params: ParamItem[] },
   index: number,
 ): string {
-  const param = getParamValue(packet, index);
-  if (!param) return "";
-  return formatValue(param.hex, param.decimal, param.binary, props.format);
+  const param = getParamValue(packet, index)
+  if (!param)
+    return ''
+  return formatValue(param.hex, param.decimal, param.binary, props.format)
 }
 
 function hasParam(packet: { params: ParamItem[] }, index: number): boolean {
-  return getParamValue(packet, index) !== undefined;
+  return getParamValue(packet, index) !== undefined
 }
 </script>
 
@@ -86,7 +87,9 @@ function hasParam(packet: { params: ParamItem[] }, index: number): boolean {
           :key="packet.id"
           class="card inline-block flex-shrink-0"
         >
-          <div class="text-purple-600 font-bold mb-1">{{ packet.label }}</div>
+          <div class="text-purple-600 font-bold mb-1">
+            {{ packet.label }}
+          </div>
           <div class="space-y-0.5">
             <div
               v-for="idx in diffIndices"

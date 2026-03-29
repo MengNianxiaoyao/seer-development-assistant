@@ -1,28 +1,28 @@
 <script setup lang="ts">
-import HexInput from "@/components/HexInput.vue";
-import ActionPanel from "@/components/ActionPanel.vue";
-import BinaryDisplay from "@/components/BinaryDisplay.vue";
-import OutputArea from "@/components/OutputArea.vue";
-import DiffArea from "@/components/DiffArea.vue";
-import HeaderPanel from "@/components/HeaderPanel.vue";
-import ValidationErrorModal from "@/components/ValidationErrorModal.vue";
-import AlertModal from "@/components/AlertModal.vue";
-import { useAnalysis } from "@/composables/useAnalysis";
-import { formatParamCount } from "@/utils/hex";
+import { computed, watch } from 'vue'
+import ActionPanel from '@/components/ActionPanel.vue'
+import AlertModal from '@/components/AlertModal.vue'
+import BinaryDisplay from '@/components/BinaryDisplay.vue'
+import DiffArea from '@/components/DiffArea.vue'
+import HeaderPanel from '@/components/HeaderPanel.vue'
+import HexInput from '@/components/HexInput.vue'
+import OutputArea from '@/components/OutputArea.vue'
+import ValidationErrorModal from '@/components/ValidationErrorModal.vue'
+import { useAnalysis } from '@/composables/useAnalysis'
 
-import { computed, watch } from "vue";
+import { formatParamCount } from '@/utils/hex'
 
 const emit = defineEmits<{
   statusChange: [
     status: {
-      validPackets: number;
-      paramCount: string;
-      diffCount: number;
-      analyzed: boolean;
-      loading: boolean;
+      validPackets: number
+      paramCount: string
+      diffCount: number
+      analyzed: boolean
+      loading: boolean
     },
-  ];
-}>();
+  ]
+}>()
 
 const {
   displayFormat,
@@ -39,26 +39,27 @@ const {
   handleImportFile,
   closeValidationModal,
   closeAlertModal,
-} = useAnalysis();
+} = useAnalysis()
 
 const paramCountText = computed(() => {
-  if (!result.value) return "0";
-  return formatParamCount(result.value.packets);
-});
+  if (!result.value)
+    return '0'
+  return formatParamCount(result.value.packets)
+})
 
 watch(
   [result, isAnalyzed, isLoading],
   () => {
-    emit("statusChange", {
+    emit('statusChange', {
       validPackets: result.value?.validPackets ?? 0,
       paramCount: paramCountText.value,
       diffCount: result.value?.diffCount ?? 0,
       analyzed: isAnalyzed.value,
       loading: isLoading.value,
-    });
+    })
   },
   { immediate: true },
-);
+)
 </script>
 
 <template>

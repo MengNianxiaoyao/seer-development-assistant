@@ -1,40 +1,41 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { formatValue, getHighlightClass, copyToClipboard } from "@/utils/hex";
-import { usePacketData } from "@/composables/usePacketData";
-import type { AnalysisResult, DisplayFormat } from "@/types";
+import type { AnalysisResult, DisplayFormat } from '@/types'
+import { computed, ref } from 'vue'
+import { usePacketData } from '@/composables/usePacketData'
+import { copyToClipboard, formatValue, getHighlightClass } from '@/utils/hex'
 
 const props = defineProps<{
-  result: AnalysisResult | null;
-  format: DisplayFormat;
-}>();
+  result: AnalysisResult | null
+  format: DisplayFormat
+}>()
 
-const copiedIndex = ref<number | null>(null);
+const copiedIndex = ref<number | null>(null)
 
 const { receivePackets, sendPacketParams, diffIndexSet } = usePacketData(
   computed(() => props.result),
-);
+)
 
 const hasContent = computed(() => {
-  if (!props.result && sendPacketParams.value.length === 0) return false;
+  if (!props.result && sendPacketParams.value.length === 0)
+    return false
   return (
     (props.result?.packets.length ?? 0) > 0 || sendPacketParams.value.length > 0
-  );
-});
+  )
+})
 
 function getSendParamClass(paramIdx: number): string {
   return diffIndexSet.value.has(paramIdx)
-    ? "highlight-yellow"
-    : "highlight-orange";
+    ? 'highlight-yellow'
+    : 'highlight-orange'
 }
 
 async function handleCopy(value: string, index: number) {
-  const success = await copyToClipboard(value);
+  const success = await copyToClipboard(value)
   if (success) {
-    copiedIndex.value = index;
+    copiedIndex.value = index
     setTimeout(() => {
-      copiedIndex.value = null;
-    }, 1200);
+      copiedIndex.value = null
+    }, 1200)
   }
 }
 </script>
@@ -61,8 +62,7 @@ async function handleCopy(value: string, index: number) {
       <span
         v-if="copiedIndex !== null"
         class="text-[10px] text-green-500 ml-2 animate-fade-in"
-        >已复制</span
-      >
+      >已复制</span>
     </div>
 
     <div
@@ -136,7 +136,9 @@ async function handleCopy(value: string, index: number) {
           :key="packet.id"
           class="card inline-block flex-shrink-0"
         >
-          <div class="text-purple-600 font-bold mb-1">{{ packet.label }}</div>
+          <div class="text-purple-600 font-bold mb-1">
+            {{ packet.label }}
+          </div>
           <div v-if="packet.params.length === 0" class="text-gray-400">
             无参数
           </div>
