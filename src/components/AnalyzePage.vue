@@ -5,14 +5,25 @@ import BinaryDisplay from "@/components/BinaryDisplay.vue";
 import OutputArea from "@/components/OutputArea.vue";
 import DiffArea from "@/components/DiffArea.vue";
 import HeaderPanel from "@/components/HeaderPanel.vue";
-import StatusBar from "@/components/StatusBar.vue";
 import ValidationErrorModal from "@/components/ValidationErrorModal.vue";
 import AlertModal from "@/components/AlertModal.vue";
 import { useAnalysis } from "@/composables/useAnalysis";
 import { useCtrlEnter } from "@/composables/useKeyboard";
 import { formatParamCount } from "@/utils/hex";
 
-import { computed } from "vue";
+import { computed, watch } from "vue";
+
+const emit = defineEmits<{
+  statusChange: [
+    status: {
+      validPackets: number;
+      paramCount: string;
+      diffCount: number;
+      analyzed: boolean;
+      loading: boolean;
+    },
+  ];
+}>();
 
 const {
   inputs,
@@ -40,6 +51,20 @@ const paramCountText = computed(() => {
   if (!result.value) return "0";
   return formatParamCount(result.value.packets);
 });
+
+watch(
+  [result, isAnalyzed, isLoading],
+  () => {
+    emit("statusChange", {
+      validPackets: result.value?.validPackets ?? 0,
+      paramCount: paramCountText.value,
+      diffCount: result.value?.diffCount ?? 0,
+      analyzed: isAnalyzed.value,
+      loading: isLoading.value,
+    });
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -100,7 +125,7 @@ const paramCountText = computed(() => {
           style="
             height: calc(100vh - 340px);
             min-height: 300px;
-            max-height: 550px;
+            max-height: 560px;
           "
         >
           <div class="w-[80%] flex flex-col gap-3 min-w-0 h-full">
@@ -117,14 +142,6 @@ const paramCountText = computed(() => {
         </div>
       </div>
     </div>
-
-    <StatusBar
-      :valid-packets="result?.validPackets ?? 0"
-      :param-count="paramCountText"
-      :diff-count="result?.diffCount ?? 0"
-      :analyzed="isAnalyzed"
-      :loading="isLoading"
-    />
 
     <ValidationErrorModal
       v-if="showValidationModal"

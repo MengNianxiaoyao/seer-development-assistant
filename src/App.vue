@@ -1,10 +1,23 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import Button from "@/components/Button.vue";
 import ConvertPage from "@/components/ConvertPage.vue";
 import AnalyzePage from "@/components/AnalyzePage.vue";
+import StatusBar from "@/components/StatusBar.vue";
 
 const activeTab = ref<"analyze" | "convert">("analyze");
+
+const analyzeStatus = reactive({
+  validPackets: 0,
+  paramCount: "0",
+  diffCount: 0,
+  analyzed: false,
+  loading: false,
+});
+
+function handleStatusChange(status: typeof analyzeStatus) {
+  Object.assign(analyzeStatus, status);
+}
 </script>
 
 <template>
@@ -60,7 +73,19 @@ const activeTab = ref<"analyze" | "convert">("analyze");
     </header>
 
     <KeepAlive>
-      <component :is="activeTab === 'analyze' ? AnalyzePage : ConvertPage" />
+      <component
+        :is="activeTab === 'analyze' ? AnalyzePage : ConvertPage"
+        @status-change="handleStatusChange"
+      />
     </KeepAlive>
+
+    <StatusBar
+      :valid-packets="analyzeStatus.validPackets"
+      :param-count="analyzeStatus.paramCount"
+      :diff-count="analyzeStatus.diffCount"
+      :analyzed="analyzeStatus.analyzed"
+      :loading="analyzeStatus.loading"
+      :show-info="activeTab === 'analyze'"
+    />
   </div>
 </template>
