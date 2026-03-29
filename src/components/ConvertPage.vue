@@ -11,7 +11,6 @@ const {
   hexToFormatOutput,
   hexToFormatError,
   hasHexToFormatResult,
-  handleHexToFormatConvert,
   handleHexToFormatReset,
   selectAll,
   deselectAll,
@@ -64,13 +63,9 @@ const {
         </div>
 
         <div class="flex gap-2">
-          <Button
-            type="primary"
-            class="flex-1"
-            @click="handleHexToFormatConvert"
-            >转换</Button
+          <Button type="danger" class="flex-1" @click="handleHexToFormatReset"
+            >重置</Button
           >
-          <Button type="danger" @click="handleHexToFormatReset">重置</Button>
         </div>
 
         <div

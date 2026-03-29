@@ -1,13 +1,14 @@
 {
   "name": "seer-development-assistant",
   "public": true,
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --fix"
+    "lint": "eslint . --fix",
+    "prettier": "prettier --write src/**/*.{vue,ts}"
   },
   "dependencies": {
     "vue": "^3.5.30"
