@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { formatParamCount } from '@/utils/hex'
 import type { AnalysisResult } from '@/types'
 
 const props = defineProps<{
@@ -19,9 +20,9 @@ const headerFields = computed(() => {
   ]
 })
 
-const paramCount = computed(() => {
-  if (!props.result?.packets.length) return 0
-  return props.result.packets[0].header.paramCount.decimal
+const paramCountText = computed(() => {
+  if (!props.result) return '0'
+  return formatParamCount(props.result.packets)
 })
 
 const diffIndices = computed(() => {
@@ -76,7 +77,7 @@ const diffIndices = computed(() => {
         <div class="flex items-center gap-2">
           <span class="text-gray-500 w-20 flex-shrink-0">参数数量:</span>
           <span class="font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-            {{ paramCount }}
+            {{ paramCountText }}
           </span>
         </div>
       </div>

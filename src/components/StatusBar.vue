@@ -5,7 +5,7 @@ declare const __APP_VERSION__: string
 
 defineProps<{
   validPackets: number
-  paramCount: number
+  paramCount: string
   diffCount: number
   analyzed: boolean
   loading?: boolean

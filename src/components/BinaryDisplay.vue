@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { getHighlightClass } from '@/utils/hex'
+import { usePacketData } from '@/composables/usePacketData'
 import type { AnalysisResult } from '@/types'
 
 const props = defineProps<{
@@ -13,13 +14,12 @@ function formatBinary(binary: string): string {
   return binary.replace(/(.{4})/g, '$1 ').trim()
 }
 
+const { receivePackets } = usePacketData(computed(() => props.result))
+
 const parsedData = computed(() => {
-  if (!props.result) return []
-  
-  return props.result.packets
-    .filter(p => p.label !== '发包')
-    .filter(p => p.header.commandId.decimal === SPECIAL_COMMAND_ID)
-    .map(p => ({
+  return receivePackets.value
+    .filter((p) => p.header.commandId.decimal === SPECIAL_COMMAND_ID)
+    .map((p) => ({
       id: p.id,
       label: p.label,
       groups: p.bodySegments4 ?? [],
@@ -28,12 +28,12 @@ const parsedData = computed(() => {
 
 const diffIndexSet = computed(() => {
   if (parsedData.value.length < 2) return new Set<number>()
-  const maxLen = Math.max(...parsedData.value.map(d => d.groups.length))
+  const maxLen = Math.max(...parsedData.value.map((d) => d.groups.length))
   const diffs = new Set<number>()
   for (let i = 0; i < maxLen; i++) {
-    const values = parsedData.value.map(d => d.groups[i]?.hex ?? '')
+    const values = parsedData.value.map((d) => d.groups[i]?.hex ?? '')
     const first = values[0]
-    if (values.some(v => v !== first)) diffs.add(i + 1)
+    if (values.some((v) => v !== first)) diffs.add(i + 1)
   }
   return diffs
 })
@@ -44,16 +44,19 @@ const diffIndexSet = computed(() => {
     <div class="section-title">
       <span class="flex items-center gap-2">
         <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+          />
         </svg>
         二进制显示区
       </span>
     </div>
 
     <div class="flex-1 overflow-x-auto overflow-y-auto">
-      <div v-if="parsedData.length === 0" class="text-gray-400 text-xs text-center py-4">
-        暂无收包数据
-      </div>
+      <div v-if="parsedData.length === 0" class="text-gray-400 text-xs text-center py-4">暂无收包数据</div>
       <div v-else class="flex gap-2">
         <div v-for="(data, pIdx) in parsedData" :key="data.id" class="card inline-block flex-shrink-0">
           <div class="text-purple-600 font-bold mb-1">{{ data.label }}</div>

@@ -1,53 +1,21 @@
 <script setup lang="ts">
-import FilePicker from "@/components/FilePicker.vue";
-import Button from "@/components/Button.vue";
+import FilePicker from '@/components/FilePicker.vue'
+import Button from '@/components/Button.vue'
 
 const emit = defineEmits<{
-  import: [];
-  export: [];
-  analyze: [];
-  convertDecimal: [];
-  reset: [];
-  importFile: [data: string[]];
-}>();
+  export: []
+  analyze: []
+  convertDecimal: []
+  reset: []
+  importFile: [content: string]
+}>()
 
 function handleFileSelected(file: File) {
-  const reader = new FileReader();
+  const reader = new FileReader()
   reader.onload = () => {
-    try {
-      const json = JSON.parse(reader.result as string);
-      const hexStrings: string[] = [];
-
-      if (json.packets && Array.isArray(json.packets)) {
-        // Pass the entire JSON as a single string for App.vue to parse
-        emit("importFile", [reader.result as string]);
-        return;
-      } else if (Array.isArray(json)) {
-        for (const item of json) {
-          if (typeof item === "string") {
-            hexStrings.push(item);
-          } else if (item.hex) {
-            hexStrings.push(item.hex);
-          } else if (item.data) {
-            hexStrings.push(item.data);
-          } else if (item.value) {
-            hexStrings.push(item.value);
-          } else if (item.raw) {
-            hexStrings.push(item.raw);
-          }
-        }
-      } else if (typeof json === "string") {
-        hexStrings.push(json);
-      }
-
-      if (hexStrings.length > 0) {
-        emit("importFile", hexStrings);
-      }
-    } catch {
-      emit("import");
-    }
-  };
-  reader.readAsText(file);
+    emit('importFile', reader.result as string)
+  }
+  reader.readAsText(file)
 }
 </script>
 
