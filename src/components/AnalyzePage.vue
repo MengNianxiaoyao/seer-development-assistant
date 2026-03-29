@@ -32,16 +32,9 @@ const {
   closeAlertModal,
 } = useAnalysis()
 
-const SPECIAL_COMMAND_ID_45866 = 45866
-
 function getParamCount(result: any): number {
   if (!result?.packets?.length) return 0
   const first = result.packets[0]
-  const commandId = first.header.commandId.decimal
-  const totalParams = first.params.length
-  if (commandId === SPECIAL_COMMAND_ID_45866) {
-    return Math.max(0, totalParams - 2)
-  }
   return first.header.paramCount.decimal
 }
 
@@ -86,7 +79,7 @@ onUnmounted(() => {
         
         <!-- Binary Display -->
         <div class="flex-shrink-0" style="height: 150px;">
-          <BinaryDisplay :inputs="inputs" />
+          <BinaryDisplay :result="result" />
         </div>
         
         <!-- Header Panel -->
@@ -123,7 +116,7 @@ onUnmounted(() => {
             />
           </div>
           <div class="w-[45%] min-w-0">
-            <BinaryDisplay :inputs="inputs" />
+            <BinaryDisplay :result="result" />
           </div>
         </div>
 

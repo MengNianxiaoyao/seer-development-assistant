@@ -20,22 +20,26 @@ export function useConverter() {
       if (selectedParams.length === 0) {
         return '请至少选择一个参数'
       }
-      return `{${commandId.value},${selectedParams.length},${selectedParams.map(p => p.value).join(',')}}`
+      return `{${commandId.value},${selectedParams.map(p => p.value).join(',')}}`
     }
     return outputResult.value
   })
 
   function parseHexToParams(hex: string): { commandId: string; params: ParsedParam[] } | null {
     const cleaned = cleanHex(hex)
-    if (cleaned.length < 42) {
+    // 封包头固定34位十六进制（17字节）
+    if (cleaned.length < 34) {
       return null
     }
 
+    // 命令号在第10-18位（封包长度8位 + 版本号2位 + 命令号8位）
     const cmdId = cleaned.substring(10, 18)
     const cmdIdDec = hexToDecimal(cmdId)
 
-    const paramsHex = cleaned.substring(42)
+    // 封包体：从第34位开始
+    const paramsHex = cleaned.substring(34)
     const params: ParsedParam[] = []
+    // 通用转换：按4字节（8位十六进制）分段
     for (let i = 0; i < paramsHex.length; i += 8) {
       const chunk = paramsHex.substring(i, i + 8)
       if (chunk.length === 8) {
@@ -64,35 +68,34 @@ export function useConverter() {
     parsedParams.value = parsed.params
     paramCount.value = parsed.params.length
 
-    return `{${parsed.commandId},${parsed.params.length},${parsed.params.map(p => p.value).join(',')}}`
+    return `{${parsed.commandId},${parsed.params.map(p => p.value).join(',')}}`
   }
 
   function convertFormatToHex(format: string): string {
-    const match = format.match(/^\{(\d+),(\d+),(\d+(?:,\d+)*)\}$/)
+    const match = format.match(/^\{(\d+),(\d+(?:,\d+)*)\}$/)
     if (!match) {
-      return '格式错误，请输入 {commandId,paramCount,param1,param2,...}'
+      return '格式错误，请输入 {commandId,param1,param2,...}'
     }
 
-    const [, cmdId, paramCountStr, paramsStr] = match
+    const [, cmdId, paramsStr] = match
     const params = paramsStr.split(',').map(p => parseInt(p, 10))
 
-    if (params.length !== parseInt(paramCountStr, 10)) {
-      return '参数数量不匹配'
-    }
-
-    const header = '00000035'
+    // 封包头：34位十六进制
+    // 封包长度 = 17 + 参数字节数
+    const paramByteLen = params.length * 4
+    const packetLength = 17 + paramByteLen
+    const header = decimalToHex(packetLength, 8)
     const version = '31'
     const cmdIdHex = decimalToHex(parseInt(cmdId, 10), 8)
     const mimiId = '00000000'
     const sequence = '00000000'
-    const paramCnt = decimalToHex(params.length, 8)
 
     let paramHex = ''
     params.forEach(p => {
       paramHex += decimalToHex(p, 8)
     })
 
-    return header + version + cmdIdHex + mimiId + sequence + paramCnt + paramHex
+    return header + version + cmdIdHex + mimiId + sequence + paramHex
   }
 
   function handleConvert() {

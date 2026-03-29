@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { toRef } from 'vue'
+import { ref, computed } from 'vue'
 import { formatValue, getHighlightClass, copyToClipboard } from '@/utils/hex'
-import { useDiffIndexSet, useReceivePackets, useSendPacketParams } from '@/composables/usePacketData'
 import type { AnalysisResult, DisplayFormat } from '@/types'
-import { ref } from 'vue'
 
 const props = defineProps<{
   result: AnalysisResult | null
@@ -12,14 +10,21 @@ const props = defineProps<{
 
 const copiedIndex = ref<number | null>(null)
 
-const resultRef = toRef(props, 'result')
-const diffIndexSet = useDiffIndexSet(resultRef)
-const receivePackets = useReceivePackets(resultRef)
-const sendPacketParams = useSendPacketParams(resultRef)
+const receivePackets = computed(() => {
+  return props.result?.packets.filter(p => p.label !== '发包') ?? []
+})
+
+const sendPacketParams = computed(() => {
+  return props.result?.packets.find(p => p.label === '发包')?.params ?? []
+})
+
+const diffIndexSet = computed(() => {
+  if (!props.result?.diffs.length) return new Set<number>()
+  return new Set(props.result.diffs.map(d => d.index))
+})
 
 function getSendParamClass(paramIdx: number): string {
-  if (!diffIndexSet.value.has(paramIdx)) return 'highlight-orange'
-  return 'highlight-yellow'
+  return diffIndexSet.value.has(paramIdx) ? 'highlight-yellow' : 'highlight-orange'
 }
 
 async function handleCopy(value: string, index: number) {
@@ -30,10 +35,10 @@ async function handleCopy(value: string, index: number) {
   }
 }
 
-function hasContent(): boolean {
+const hasContent = computed(() => {
   if (!props.result && sendPacketParams.value.length === 0) return false
   return (props.result?.packets.length ?? 0) > 0 || sendPacketParams.value.length > 0
-}
+})
 </script>
 
 <template>
@@ -48,7 +53,7 @@ function hasContent(): boolean {
       <span v-if="copiedIndex !== null" class="text-[10px] text-green-500 ml-2 animate-fade-in">已复制</span>
     </div>
 
-    <div v-if="!hasContent()" class="text-gray-400 text-xs text-center py-4 flex-1">
+    <div v-if="!hasContent" class="text-gray-400 text-xs text-center py-4 flex-1">
       点击"开始分析"查看结果
     </div>
 

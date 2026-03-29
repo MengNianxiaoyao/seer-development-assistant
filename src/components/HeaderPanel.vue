@@ -6,28 +6,18 @@ const props = defineProps<{
   result: AnalysisResult | null
 }>()
 
-const SPECIAL_COMMAND_ID_45866 = 45866
-
 const headerFields = computed(() => {
   if (!props.result?.packets.length) return []
 
   const first = props.result.packets[0]
-  const commandId = first.header.commandId.decimal
-  const totalParams = first.params.length
-  
-  // 45866 命令：参数总数=实际参数数量，其他命令：使用 header.paramCount
-  const paramCount = commandId === SPECIAL_COMMAND_ID_45866 
-    ? totalParams - 2 
-    : first.header.paramCount.decimal
-
   return [
     { name: '包长度', decimal: first.header.packetLength.decimal },
     { name: '版本号', decimal: first.header.version.decimal },
-    { name: '命令号', decimal: commandId },
+    { name: '命令号', decimal: first.header.commandId.decimal },
     { name: '米米号', decimal: first.header.mimiId.decimal },
     { name: '序列号', decimal: first.header.sequence.decimal },
-    { name: '参数总数', decimal: totalParams },
-    { name: '参数数量', decimal: Math.max(0, paramCount) },
+    { name: '参数总数', decimal: first.params.length },
+    { name: '参数数量', decimal: first.header.paramCount.decimal },
   ]
 })
 

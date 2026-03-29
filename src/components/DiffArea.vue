@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, toRef } from 'vue'
+import { computed } from 'vue'
 import { formatValue, getHighlightClass } from '@/utils/hex'
-import { useDiffIndexSet, useReceivePackets } from '@/composables/usePacketData'
 import type { AnalysisResult, DisplayFormat } from '@/types'
 
 const props = defineProps<{
@@ -9,9 +8,14 @@ const props = defineProps<{
   format: DisplayFormat
 }>()
 
-const resultRef = toRef(props, 'result')
-const diffIndexSet = useDiffIndexSet(resultRef)
-const receivePackets = useReceivePackets(resultRef)
+const receivePackets = computed(() => {
+  return props.result?.packets.filter(p => p.label !== '发包') ?? []
+})
+
+const diffIndexSet = computed(() => {
+  if (!props.result?.diffs.length) return new Set<number>()
+  return new Set(props.result.diffs.map(d => d.index))
+})
 
 const diffPackets = computed(() => {
   return receivePackets.value.filter(p =>
@@ -19,9 +23,7 @@ const diffPackets = computed(() => {
   )
 })
 
-const hasDiffParams = computed(() => {
-  return diffPackets.value.length > 0
-})
+const hasDiffParams = computed(() => diffPackets.value.length > 0)
 </script>
 
 <template>

@@ -28,39 +28,13 @@ const HEADER_SPECS = [
   { name: '序列号', length: 8 },
 ] as const
 
-const HEADER_TOTAL_LENGTH = 34
 const HEADER_FIXED_PART = 17 // 封包头固定部分字节数
 
 const SPECIAL_COMMAND_ID = 42023
-const SPECIAL_COMMAND_ID_45866 = 45866
 
 export function useHexParser() {
   const result = ref<AnalysisResult | null>(null)
   const isAnalyzed = ref(false)
-
-  function parseParams42023(hex: string): ParamItem[] {
-    const params: ParamItem[] = []
-    let offset = 34 // 序列号结束位置
-
-    if (offset + 8 > hex.length) return params
-
-    const paramCount = parseInt(hex.substring(offset, offset + 8), 16)
-    offset += 8
-
-    for (let i = 0; i < paramCount; i++) {
-      if (offset + 2 > hex.length) break
-      const paramHex = hex.substring(offset, offset + 2).padEnd(2, '0')
-      params.push({
-        index: params.length + 1,
-        hex: paramHex,
-        decimal: parseInt(paramHex, 16),
-        binary: hexToBinary(paramHex),
-      })
-      offset += 2
-    }
-
-    return params
-  }
 
   /**
    * 解析封包头
@@ -95,57 +69,6 @@ export function useHexParser() {
     }
   }
 
-  function parseParams45866(hex: string, startOffset: number): ParamItem[] {
-    const params: ParamItem[] = []
-    let offset = startOffset
-
-    while (offset + 8 <= hex.length) {
-      const paramHex = hex.substring(offset, offset + 8)
-      params.push({
-        index: params.length + 1,
-        hex: paramHex,
-        decimal: parseInt(paramHex, 16),
-        binary: hexToBinary(paramHex),
-      })
-      offset += 8
-    }
-
-    return params
-  }
-
-  function parseParams(hex: string, offset: number, paramCount: number, commandIdDec: number): ParamItem[] {
-    const remaining = hex.substring(offset)
-
-    if (paramCount <= 1) {
-      if (!remaining) return []
-      return [{
-        index: 1,
-        hex: remaining,
-        decimal: hexToDecimal(remaining),
-        binary: hexToBinary(remaining),
-      }]
-    }
-
-    const groupSize = commandIdDec === SPECIAL_COMMAND_ID ? 2 : 8
-    const params: ParamItem[] = []
-    let pos = 0
-    let idx = 1
-
-    while (pos < remaining.length) {
-      const chunk = remaining.substring(pos, pos + groupSize).padEnd(groupSize, '0')
-      params.push({
-        index: idx,
-        hex: chunk,
-        decimal: hexToDecimal(chunk),
-        binary: hexToBinary(chunk),
-      })
-      pos += groupSize
-      idx++
-    }
-
-    return params
-  }
-
   function splitBodySegments(bodyHex: string) {
     const clean = bodyHex
     // 1-byte segments: 2 hex chars
@@ -171,29 +94,47 @@ export function useHexParser() {
 
   function parseSinglePacket(id: number, rawHex: string, label: string): ParsedPacket {
     const hex = cleanHex(rawHex)
-    const { header, offset } = parseHeader(hex)
-    const paramCountDec = header.paramCount.decimal
+    const { header } = parseHeader(hex)
     const commandIdDec = header.commandId.decimal
 
-    let params: ParamItem[]
-    let isGrouped: boolean
-    let groupSize: number
-    // Body segments for output (after header)
-    const bodyHex = hex.substring(34) // header is fixed 34 hex chars (17 bytes)
+    // 封包体：header 之后的所有内容
+    const bodyHex = hex.substring(34)
     const { seg1, seg2, seg4 } = splitBodySegments(bodyHex)
 
-    if (commandIdDec === SPECIAL_COMMAND_ID_45866) {
-      params = parseParams45866(hex, 34)
-      isGrouped = true
-      groupSize = 8
-    } else if (commandIdDec === SPECIAL_COMMAND_ID) {
-      params = parseParams42023(hex)
-      isGrouped = true
-      groupSize = 2
+    // 解析封包体
+    // 发包：通用解析，按4字节分段
+    // 收包：42023特殊处理（第一个4字节，后续1字节）
+    let params: ParamItem[] = []
+    const isSendPacket = label === '发包'
+
+    if (commandIdDec === SPECIAL_COMMAND_ID && !isSendPacket) {
+      // 42023 收包: 第一个4字节，后续1字节
+      const firstParam = seg4[0]
+      if (firstParam) {
+        params.push({
+          index: 1,
+          hex: firstParam.hex,
+          decimal: firstParam.decimal,
+          binary: firstParam.binary,
+        })
+      }
+      // 后续用1字节
+      for (let i = 0; i < seg1.length; i++) {
+        params.push({
+          index: params.length + 1,
+          hex: seg1[i].hex,
+          decimal: seg1[i].decimal,
+          binary: seg1[i].binary,
+        })
+      }
     } else {
-      isGrouped = paramCountDec > 1
-      groupSize = 8
-      params = parseParams(hex, offset, paramCountDec, commandIdDec)
+      // 发包或非42023：全部按4字节分段
+      params = seg4.map((s, idx) => ({
+        index: idx + 1,
+        hex: s.hex,
+        decimal: s.decimal,
+        binary: s.binary,
+      }))
     }
 
     return {
@@ -202,8 +143,8 @@ export function useHexParser() {
       raw: hex,
       header,
       params,
-      isGrouped,
-      groupSize,
+      isGrouped: params.length > 1,
+      groupSize: 4,
       bodySegments1: seg1,
       bodySegments2: seg2,
       bodySegments4: seg4,
@@ -211,6 +152,7 @@ export function useHexParser() {
   }
 
   function validate(inputs: { raw: string; enabled: boolean; label: string }[]): ValidationError[] {
+    // 仅校验封包头的命令号一致性
     const dataInputs = inputs.filter(i => i.enabled && i.raw.trim())
     if (dataInputs.length < 2) return []
 
@@ -225,45 +167,13 @@ export function useHexParser() {
       const current = parseSinglePacket(0, input.raw, input.label)
       const reasons: string[] = []
 
-      const rawLen = current.raw.length
-      if (rawLen < HEADER_TOTAL_LENGTH) {
-        reasons.push(`封包格式异常：长度不足（${rawLen} < ${HEADER_TOTAL_LENGTH}）`)
-      }
-
-      if (current.header.packetLength.hex !== baseline.header.packetLength.hex) {
-        reasons.push(`封包长度不一致：${current.header.packetLength.decimal} ≠ ${baseline.header.packetLength.decimal}`)
-      }
-
       if (current.header.commandId.hex !== baseline.header.commandId.hex) {
         reasons.push(`命令号不一致：${current.header.commandId.decimal} ≠ ${baseline.header.commandId.decimal}`)
-      }
-
-      if (current.header.paramCount.hex !== baseline.header.paramCount.hex) {
-        reasons.push(`参数数量不一致：${current.header.paramCount.decimal} ≠ ${baseline.header.paramCount.decimal}`)
-      }
-
-      const declaredCount = current.header.paramCount.decimal
-      const actualCount = current.params.length
-      if (declaredCount > 1 && actualCount !== declaredCount) {
-        reasons.push(`实际参数数量与声明不一致：解析到 ${actualCount} 个，声明 ${declaredCount} 个`)
-      }
-
-      if (current.params.length !== baseline.params.length) {
-        reasons.push(`解析参数数量不一致：${current.params.length} ≠ ${baseline.params.length}`)
       }
 
       if (reasons.length > 0) {
         errors.push({ label: input.label, reasons })
       }
-    }
-
-    const baselineDeclaredCount = baseline.header.paramCount.decimal
-    const baselineActualCount = baseline.params.length
-    if (baselineDeclaredCount > 1 && baselineActualCount !== baselineDeclaredCount) {
-      errors.unshift({
-        label: baselineInput.label,
-        reasons: [`实际参数数量与声明不一致：解析到 ${baselineActualCount} 个，声明 ${baselineDeclaredCount} 个`],
-      })
     }
 
     return errors

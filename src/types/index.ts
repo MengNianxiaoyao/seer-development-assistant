@@ -101,5 +101,4 @@ export interface ExportData {
 }
 
 export type DisplayFormat = "hex" | "decimal" | "binary";
-export type BinaryGroupSize = 1 | 2 | 4 | 8;
 export type ConvertDirection = 'hexToFormat' | 'formatToHex';

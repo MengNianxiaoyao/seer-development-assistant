@@ -1,52 +1,40 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { splitByGroupSize, splitByGroupSizeFor45866, getHighlightClass, cleanHex } from '@/utils/hex'
-import type { InputEntry } from '@/types'
+import { getHighlightClass } from '@/utils/hex'
+import type { AnalysisResult } from '@/types'
 
 const props = defineProps<{
-  inputs: InputEntry[]
+  result: AnalysisResult | null
 }>()
 
-const SPECIAL_COMMAND_ID_45866 = 45866
+const SPECIAL_COMMAND_ID = 46046
 
-function getEnabledInputs() {
-  return props.inputs.filter(i => i.enabled && i.value.trim() && i.label !== '发包')
-}
-
-function getCommandId(hex: string): number {
-  const clean = cleanHex(hex)
-  if (clean.length < 18) return 0
-  return parseInt(clean.substring(10, 18), 16)
+function formatBinary(binary: string): string {
+  return binary.replace(/(.{4})/g, '$1 ').trim()
 }
 
 const parsedData = computed(() => {
-  return getEnabledInputs().map(entry => {
-    const commandId = getCommandId(entry.value)
-    const isSpecial45866 = commandId === SPECIAL_COMMAND_ID_45866
-    
-    return {
-      id: entry.id,
-      label: entry.label,
-      groups: isSpecial45866 
-        ? splitByGroupSizeFor45866(entry.value)
-        : splitByGroupSize(entry.value, commandId),
-    }
-  })
+  if (!props.result) return []
+  
+  return props.result.packets
+    .filter(p => p.label !== '发包')
+    .filter(p => p.header.commandId.decimal === SPECIAL_COMMAND_ID)
+    .map(p => ({
+      id: p.id,
+      label: p.label,
+      groups: p.bodySegments4 ?? [],
+    }))
 })
 
 const diffIndexSet = computed(() => {
   if (parsedData.value.length < 2) return new Set<number>()
   const maxLen = Math.max(...parsedData.value.map(d => d.groups.length))
   const diffs = new Set<number>()
-
   for (let i = 0; i < maxLen; i++) {
     const values = parsedData.value.map(d => d.groups[i]?.hex ?? '')
     const first = values[0]
-    if (values.some(v => v !== first)) {
-      diffs.add(i + 1)
-    }
+    if (values.some(v => v !== first)) diffs.add(i + 1)
   }
-
   return diffs
 })
 </script>
@@ -78,7 +66,7 @@ const diffIndexSet = computed(() => {
               :class="getHighlightClass(pIdx, group.index, diffIndexSet)"
             >
               <span class="opacity-60 w-8 inline-block">[{{ group.index }}]</span>
-              <span>{{ group.binary }}</span>
+              <span>{{ formatBinary(group.binary) }}</span>
             </div>
           </div>
         </div>
