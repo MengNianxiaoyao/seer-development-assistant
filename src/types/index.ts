@@ -79,3 +79,37 @@ export interface ExportData {
 }
 
 export type DisplayFormat = 'hex' | 'decimal' | 'binary'
+
+export type PacketType = 'receive' | 'send'
+
+export interface PacketDisplayItem {
+  id: number
+  label: string
+  raw: string
+  params: ParamItemWithFormat[]
+  type: PacketType
+}
+
+export interface ParamItemWithFormat extends ParamItem {
+  formatted: string
+}
+
+export interface StatusInfo {
+  validPackets: number
+  paramCount: string
+  diffCount: number
+  analyzed: boolean
+  loading: boolean
+}
+
+export type ImportFormat = 'analysis' | 'hex' | 'unknown'
+
+export interface ImportResult {
+  format: ImportFormat
+  data: unknown
+}
+
+export interface ConverterResult {
+  output: string
+  error?: string
+}

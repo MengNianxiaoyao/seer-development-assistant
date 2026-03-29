@@ -19,4 +19,29 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
   },
+  build: {
+    target: 'es2015',
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('vue') || id.includes('pinia')) {
+              return 'vendor-vue'
+            }
+            if (id.includes('@vueuse')) {
+              return 'vendor-vueuse'
+            }
+          }
+        },
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
+      },
+    },
+    sourcemap: false,
+    reportCompressedSize: true,
+  },
+  optimizeDeps: {
+    include: ['vue', 'pinia', '@vueuse/core'],
+  },
 })

@@ -87,25 +87,40 @@ export function findDifferences(packets: ParsedPacket[]): DiffResult[] {
   if (packets.length < 2)
     return []
 
-  const maxLen = Math.max(...packets.map(p => p.params.length))
+  let maxLen = 0
+  for (let i = 0; i < packets.length; i++) {
+    const len = packets[i].params.length
+    if (len > maxLen)
+      maxLen = len
+  }
+
   const diffs: DiffResult[] = []
 
   for (let i = 0; i < maxLen; i++) {
-    const exists = packets.map(p => i < p.params.length)
-    const values = packets.map(p => p.params[i]?.hex ?? '')
+    let hasAny = false
+    let allExist = true
+    let firstValue: string | undefined
+    let valuesMatch = true
 
-    // 如果所有包在这个位置都没有参数，跳过
-    if (exists.every(e => !e))
+    for (let j = 0; j < packets.length; j++) {
+      const param = packets[j].params[i]
+      if (param) {
+        hasAny = true
+        if (firstValue === undefined)
+          firstValue = param.hex
+        else if (param.hex !== firstValue)
+          valuesMatch = false
+      }
+      else {
+        allExist = false
+      }
+    }
+
+    if (!hasAny)
       continue
 
-    // 如果某些包有参数而某些没有，或者值不同，都是差异
-    const allSame = exists.every(e => e === exists[0])
-    const valuesMatch = values.every(v => v === values[0])
-    const hasDiff = !allSame || !valuesMatch
-
-    if (hasDiff) {
-      // 优先使用第一个有参数的包的值
-      const refParam = packets.find(p => i < p.params.length)?.params[i]
+    if (!allExist || !valuesMatch) {
+      const refParam = packets.find(p => p.params[i])?.params[i]
       if (refParam) {
         diffs.push({
           index: i + 1,

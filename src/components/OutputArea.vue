@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AnalysisResult, DisplayFormat } from '@/types'
-import { computed, ref } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { usePacketData } from '@/composables/usePacketData'
 import { copyToClipboard, formatValue, getHighlightClass } from '@/utils/hex'
 
@@ -9,7 +9,7 @@ const props = defineProps<{
   format: DisplayFormat
 }>()
 
-const copiedIndex = ref<number | null>(null)
+const copiedIndex = shallowRef<number | null>(null)
 
 const { receivePackets, sendPacketParams, diffIndexSet } = usePacketData(
   computed(() => props.result),
@@ -21,6 +21,33 @@ const hasContent = computed(() => {
   return (
     (props.result?.packets.length ?? 0) > 0 || sendPacketParams.value.length > 0
   )
+})
+
+const sendPacketParamsWithFormat = computed(() => {
+  return sendPacketParams.value.map(param => ({
+    ...param,
+    formatted: formatValue(
+      param.hex,
+      param.decimal,
+      param.binary,
+      props.format,
+    ),
+  }))
+})
+
+const receivePacketsWithFormat = computed(() => {
+  return receivePackets.value.map(packet => ({
+    ...packet,
+    params: packet.params.map(param => ({
+      ...param,
+      formatted: formatValue(
+        param.hex,
+        param.decimal,
+        param.binary,
+        props.format,
+      ),
+    })),
+  }))
 })
 
 function getSendParamClass(paramIdx: number): string {
@@ -109,30 +136,24 @@ async function handleCopy(value: string, index: number) {
           </div>
           <div class="space-y-0.5">
             <div
-              v-for="param in sendPacketParams"
+              v-for="param in sendPacketParamsWithFormat"
               :key="param.index"
               class="diff-item-clickable hover:ring-orange-300"
               :class="[
                 getSendParamClass(param.index),
                 copiedIndex === param.index ? 'ring-2 ring-green-400' : '',
               ]"
-              @click="
-                handleCopy(
-                  formatValue(param.hex, param.decimal, param.binary, format),
-                  param.index,
-                )
-              "
+              :style="{ viewTransitionName: `param-${param.index}` }"
+              @click="handleCopy(param.formatted, param.index)"
             >
               <span class="param-index">[{{ param.index }}]</span>
-              <span>{{
-                formatValue(param.hex, param.decimal, param.binary, format)
-              }}</span>
+              <span>{{ param.formatted }}</span>
             </div>
           </div>
         </div>
 
         <div
-          v-for="(packet, pIdx) in receivePackets"
+          v-for="(packet, pIdx) in receivePacketsWithFormat"
           :key="packet.id"
           class="card inline-block flex-shrink-0"
         >
@@ -151,17 +172,11 @@ async function handleCopy(value: string, index: number) {
                 getHighlightClass(pIdx, param.index, diffIndexSet),
                 copiedIndex === param.index ? 'ring-2 ring-green-400' : '',
               ]"
-              @click="
-                handleCopy(
-                  formatValue(param.hex, param.decimal, param.binary, format),
-                  param.index,
-                )
-              "
+              :style="{ viewTransitionName: `param-${param.index}` }"
+              @click="handleCopy(param.formatted, param.index)"
             >
               <span class="param-index">[{{ param.index }}]</span>
-              <span>{{
-                formatValue(param.hex, param.decimal, param.binary, format)
-              }}</span>
+              <span>{{ param.formatted }}</span>
             </div>
           </div>
         </div>

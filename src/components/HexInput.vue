@@ -1,45 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import Button from '@/components/Button.vue'
 import Checkbox from '@/components/Checkbox.vue'
 import Input from '@/components/Input.vue'
-import { useInputData } from '@/composables/useAnalysis'
+import { useAnalysisStore } from '@/stores/analysis'
 
-const { inputs, sendPacket } = useInputData()
-
-const maxId = computed(() => {
-  if (inputs.value.length === 0)
-    return 0
-  return Math.max(...inputs.value.map(i => i.id))
-})
-
-const maxOrder = computed(() => {
-  if (inputs.value.length === 0)
-    return 0
-  return Math.max(...inputs.value.map(i => i.order || 0))
-})
+const store = useAnalysisStore()
+const { inputs, sendPacket } = storeToRefs(store)
 
 function addInput() {
-  inputs.value.push({
-    id: maxId.value + 1,
-    label: `收包${inputs.value.length + 1}`,
-    value: '',
-    enabled: true,
-    order: maxOrder.value + 1,
-  })
+  store.addInput()
 }
 
 function removeInput(id: number) {
-  if (inputs.value.length <= 1)
-    return
-  inputs.value = inputs.value.filter(i => i.id !== id)
-  reindexLabels()
-}
-
-function reindexLabels() {
-  inputs.value.forEach((entry, idx) => {
-    entry.label = `收包${idx + 1}`
-  })
+  store.removeInput(id)
 }
 </script>
 
