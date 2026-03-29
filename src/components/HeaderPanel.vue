@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import type { AnalysisResult } from '@/types'
 import { computed } from 'vue'
-import { formatParamCount } from '@/utils/hex'
+import {
+  formatParamCount,
+  getReceivePackets,
+  getSendPacket,
+} from '@/utils/hex'
 
 const props = defineProps<{
   result: AnalysisResult | null
@@ -11,20 +15,34 @@ const headerFields = computed(() => {
   if (!props.result?.packets.length)
     return []
 
-  const first = props.result.packets[0]
+  const packets = props.result.packets
+  const sendPacket = getSendPacket(packets)
+
+  const maxPacketLength = Math.max(
+    ...packets.map(p => p.header.packetLength.decimal),
+  )
+  const first = packets[0]
+
+  const last = packets[packets.length - 1]
+
   return [
-    { name: '包长度', decimal: first.header.packetLength.decimal },
+    { name: '包长度', decimal: maxPacketLength },
     { name: '版本号', decimal: first.header.version.decimal },
     { name: '命令号', decimal: first.header.commandId.decimal },
     { name: '米米号', decimal: first.header.mimiId.decimal },
-    { name: '序列号', decimal: first.header.sequence.decimal },
+    {
+      name: '序列号',
+      decimal:
+        sendPacket?.header.sequence.decimal ?? last.header.sequence.decimal,
+    },
   ]
 })
 
 const paramCountText = computed(() => {
   if (!props.result)
     return '0'
-  return formatParamCount(props.result.packets)
+  const receivePackets = getReceivePackets(props.result.packets)
+  return formatParamCount(receivePackets)
 })
 
 const diffIndices = computed(() => {

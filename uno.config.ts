@@ -41,7 +41,6 @@ export default defineConfig({
     'highlight-red': 'bg-red-100 text-red-600',
     'highlight-blue': 'bg-blue-100 text-blue-600',
     'highlight-orange': 'bg-orange-100 text-orange-700',
-    'highlight-yellow': 'bg-yellow-100 text-yellow-700',
 
     // Diff item
     'diff-item': 'flex gap-1 px-1 py-0.5 rounded',

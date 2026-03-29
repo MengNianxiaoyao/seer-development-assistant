@@ -50,10 +50,15 @@ const receivePacketsWithFormat = computed(() => {
   }))
 })
 
+const hasMultipleReceivePackets = computed(
+  () => receivePackets.value.length > 1,
+)
+
 function getSendParamClass(paramIdx: number): string {
-  return diffIndexSet.value.has(paramIdx)
-    ? 'highlight-yellow'
-    : 'highlight-orange'
+  if (!hasMultipleReceivePackets.value) {
+    return 'highlight-orange'
+  }
+  return diffIndexSet.value.has(paramIdx) ? 'highlight-red' : 'highlight-green'
 }
 
 async function handleCopy(value: string, index: number) {

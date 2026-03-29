@@ -11,7 +11,7 @@ import PageLayout from '@/components/PageLayout.vue'
 import ValidationErrorModal from '@/components/ValidationErrorModal.vue'
 import { useAnalysis } from '@/composables/useAnalysis'
 
-import { formatParamCount } from '@/utils/hex'
+import { formatParamCount, getReceivePackets } from '@/utils/hex'
 
 const emit = defineEmits<{
   statusChange: [
@@ -45,7 +45,8 @@ const {
 const paramCountText = computed(() => {
   if (!result.value)
     return '0'
-  return formatParamCount(result.value.packets)
+  const receivePackets = getReceivePackets(result.value.packets)
+  return formatParamCount(receivePackets)
 })
 
 watch(
