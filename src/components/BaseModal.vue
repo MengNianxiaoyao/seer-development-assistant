@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { useEscapeKey } from '@/composables/useKeyboard'
+import { useEscapeKey } from "@/composables/useKeyboard";
 
 defineProps<{
-  title?: string
-  icon?: 'info' | 'warning' | 'error'
-  width?: string
-}>()
+  title?: string;
+  icon?: "info" | "warning" | "error";
+  width?: string;
+}>();
 
 const emit = defineEmits<{
-  close: []
-}>()
+  close: [];
+}>();
 
-useEscapeKey(() => emit('close'))
+useEscapeKey(() => emit("close"));
 </script>
 
 <template>
@@ -24,12 +24,15 @@ useEscapeKey(() => emit('close'))
       >
         <div class="modal-backdrop absolute inset-0" @click="emit('close')" />
         <div class="modal-dialog relative" :style="{ width: width || '400px' }">
-          <div class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[70vh]">
+          <div
+            class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[70vh]"
+          >
             <div
               v-if="title"
               class="px-5 py-4 border-b border-gray-100 flex items-center justify-center flex-shrink-0"
               :class="{
-                'bg-gradient-to-r from-gray-50 to-white': !icon || icon === 'info',
+                'bg-gradient-to-r from-gray-50 to-white':
+                  !icon || icon === 'info',
                 'bg-gradient-to-r from-red-50 to-white': icon === 'error',
                 'bg-gradient-to-r from-yellow-50 to-white': icon === 'warning',
               }"
@@ -103,7 +106,9 @@ useEscapeKey(() => emit('close'))
             <div class="flex-1 overflow-y-auto">
               <slot />
             </div>
-            <div class="px-5 py-4 border-t border-gray-100 flex justify-center bg-gray-50/50 flex-shrink-0">
+            <div
+              class="px-5 py-4 border-t border-gray-100 flex justify-center bg-gray-50/50 flex-shrink-0"
+            >
               <slot name="footer" />
             </div>
           </div>

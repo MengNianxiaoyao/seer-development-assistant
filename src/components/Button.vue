@@ -1,12 +1,12 @@
 <script setup lang="ts">
 defineProps<{
-  type?: 'primary' | 'warning' | 'danger' | 'success' | 'default'
-  size?: 'sm' | 'md'
-}>()
+  type?: "primary" | "warning" | "danger" | "success" | "default";
+  size?: "sm" | "md";
+}>();
 
 const emit = defineEmits<{
-  click: []
-}>()
+  click: [];
+}>();
 </script>
 
 <template>

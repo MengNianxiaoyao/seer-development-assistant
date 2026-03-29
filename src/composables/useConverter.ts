@@ -1,131 +1,133 @@
-import { ref, computed } from 'vue'
-import { hexToDecimal, decimalToHex, cleanHex } from '@/utils/hex'
-import type { ConvertDirection, ParsedParam } from '@/types'
+import { ref, computed } from "vue";
+import { hexToDecimal, decimalToHex, cleanHex } from "@/utils/hex";
+import type { ParsedParam } from "@/types";
 
-export function useConverter() {
-  const hexInput = ref('')
-  const outputResult = ref('')
-  const showResult = ref(false)
-  const convertDirection = ref<ConvertDirection>('hexToFormat')
-
-  const parsedParams = ref<ParsedParam[]>([])
-  const commandId = ref('')
-  const paramCount = ref(0)
-
-  const filteredParams = computed(() => parsedParams.value.filter(p => p.selected))
-
-  const finalOutput = computed(() => {
-    if (convertDirection.value === 'hexToFormat') {
-      const selectedParams = filteredParams.value
-      if (selectedParams.length === 0) {
-        return commandId.value ? `{${commandId.value}}` : '请至少选择一个参数'
-      }
-      return `{${commandId.value},${selectedParams.map(p => p.value).join(',')}}`
-    }
-    return outputResult.value
-  })
-
-  function parseHexToParams(hex: string): { commandId: string; params: ParsedParam[] } | null {
-    const cleaned = cleanHex(hex)
-    // 封包头固定34位十六进制（17字节）
-    if (cleaned.length < 34) {
-      return null
-    }
-
-    // 命令号在第10-18位（封包长度8位 + 版本号2位 + 命令号8位）
-    const cmdId = cleaned.substring(10, 18)
-    const cmdIdDec = hexToDecimal(cmdId)
-
-    // 封包体：从第34位开始
-    const paramsHex = cleaned.substring(34)
-    const params: ParsedParam[] = []
-    // 通用转换：按4字节（8位十六进制）分段
-    for (let i = 0; i < paramsHex.length; i += 8) {
-      const chunk = paramsHex.substring(i, i + 8)
-      if (chunk.length === 8) {
-        params.push({
-          index: params.length + 1,
-          value: String(hexToDecimal(chunk)),
-          selected: true
-        })
-      }
-    }
-
-    return { commandId: String(cmdIdDec), params }
+function parseHexToParams(hex: string): {
+  commandId: string;
+  params: ParsedParam[];
+  error?: string;
+} {
+  const cleaned = cleanHex(hex);
+  if (cleaned.length < 34) {
+    return {
+      commandId: "",
+      params: [],
+      error: `封包头不完整：需要34位，当前${cleaned.length}位`,
+    };
   }
 
-  function convertHexToFormat(hex: string): string {
-    const parsed = parseHexToParams(hex)
-    if (!parsed) {
-      return '发包文本长度不足'
+  const cmdId = cleaned.substring(10, 18);
+  const paramsHex = cleaned.substring(34);
+  const params: ParsedParam[] = [];
+
+  for (let i = 0; i < paramsHex.length; i += 8) {
+    if (paramsHex.substring(i, i + 8).length === 8) {
+      params.push({
+        index: params.length + 1,
+        value: String(hexToDecimal(paramsHex.substring(i, i + 8))),
+        selected: true,
+      });
     }
-
-    commandId.value = parsed.commandId
-    parsedParams.value = parsed.params
-    paramCount.value = parsed.params.length
-
-    if (parsed.params.length === 0) {
-      return `{${parsed.commandId}}`
-    }
-
-    return `{${parsed.commandId},${parsed.params.map(p => p.value).join(',')}}`
-  }
-
-  function convertFormatToHex(format: string): string {
-    const match = format.match(/^\{(\d+),(\d+(?:,\d+)*)\}$/)
-    if (!match) {
-      return '格式错误，请输入 {commandId,param1,param2,...}'
-    }
-
-    const [, cmdId, paramsStr] = match
-    const params = paramsStr.split(',').map(p => parseInt(p, 10))
-    const paramHex = params.map(p => decimalToHex(p, 8)).join('')
-    const packetLength = 17 + params.length * 4
-
-    return decimalToHex(packetLength, 8) + '31' + decimalToHex(parseInt(cmdId, 10), 8) + '00000000' + '00000000' + paramHex
-  }
-
-  function handleConvert() {
-    if (!hexInput.value.trim()) return
-
-    if (convertDirection.value === 'hexToFormat') {
-      outputResult.value = convertHexToFormat(hexInput.value)
-    } else {
-      outputResult.value = convertFormatToHex(hexInput.value.trim())
-    }
-    showResult.value = true
-  }
-
-  function handleReset() {
-    hexInput.value = ''
-    outputResult.value = ''
-    showResult.value = false
-    parsedParams.value = []
-    commandId.value = ''
-    paramCount.value = 0
-  }
-
-  function selectAll() {
-    parsedParams.value.forEach(p => p.selected = true)
-  }
-
-  function deselectAll() {
-    parsedParams.value.forEach(p => p.selected = false)
   }
 
   return {
-    hexInput,
-    outputResult,
-    showResult,
-    convertDirection,
+    commandId: String(hexToDecimal(cmdId)),
+    params,
+    error: params.length === 0 ? "当前封包无参数，仅有封包头" : undefined,
+  };
+}
+
+function convertFormatToHex(format: string): {
+  output: string;
+  error?: string;
+} {
+  const m = format.trim().match(/^\{(\d+)(?:,(\d+(?:,\d+)*))?\}$/);
+  if (!m)
+    return {
+      output: "",
+      error: "格式错误，请输入 {commandId} 或 {commandId,param1,...}",
+    };
+
+  const [, cmdId, paramsStr] = m;
+  const params = paramsStr ? paramsStr.split(",").map(Number) : [];
+  const packetLength = 17 + params.length * 4;
+
+  return {
+    output:
+      decimalToHex(packetLength, 8) +
+      "00" +
+      decimalToHex(Number(cmdId), 8) +
+      "00000000" +
+      "00000000" +
+      params.map((p) => decimalToHex(p, 8)).join(""),
+    error: params.length === 0 ? "当前封包无参数，仅有封包头" : undefined,
+  };
+}
+
+export function useConverter() {
+  const hexToFormatInput = ref("");
+  const parsedParams = ref<ParsedParam[]>([]);
+  const commandId = ref("");
+  const hexToFormatError = ref("");
+  const formatToHexInput = ref("");
+
+  const filteredParams = computed(() =>
+    parsedParams.value.filter((p) => p.selected),
+  );
+  const hexToFormatOutput = computed(() => {
+    if (!commandId.value) return "";
+    const params = filteredParams.value.map((p) => p.value).join(",");
+    return params ? `{${commandId.value},${params}}` : `{${commandId.value}}`;
+  });
+  const hasHexToFormatResult = computed(() => !!commandId.value);
+
+  const formatToHexResult = computed(() =>
+    formatToHexInput.value.trim()
+      ? convertFormatToHex(formatToHexInput.value.trim())
+      : { output: "", error: "" },
+  );
+  const formatToHexOutput = computed(() => formatToHexResult.value.output);
+  const formatToHexError = computed(() => formatToHexResult.value.error || "");
+  const hasFormatToHexResult = computed(
+    () => formatToHexInput.value.trim().length > 0,
+  );
+
+  function handleHexToFormatConvert() {
+    const input = hexToFormatInput.value.trim();
+    if (!input) return;
+    const result = parseHexToParams(input);
+    commandId.value = result.commandId;
+    parsedParams.value = result.params;
+    hexToFormatError.value = result.error || "";
+  }
+
+  function handleHexToFormatReset() {
+    hexToFormatInput.value = "";
+    parsedParams.value = [];
+    commandId.value = "";
+    hexToFormatError.value = "";
+  }
+
+  return {
+    hexToFormatInput,
     parsedParams,
     commandId,
-    paramCount,
     filteredParams,
-    finalOutput,
-    handleConvert,
-    handleReset,
-    selectAll,
-    deselectAll
-  }
+    hexToFormatOutput,
+    hexToFormatError,
+    hasHexToFormatResult,
+    handleHexToFormatConvert,
+    handleHexToFormatReset,
+    selectAll: () => parsedParams.value.forEach((p) => (p.selected = true)),
+    deselectAll: () => parsedParams.value.forEach((p) => (p.selected = false)),
+    toggleParam: (idx: number) => {
+      const p = parsedParams.value.find((p) => p.index === idx);
+      if (p) p.selected = !p.selected;
+    },
+    formatToHexInput,
+    formatToHexOutput,
+    formatToHexError,
+    hasFormatToHexResult,
+    handleFormatToHexReset: () => (formatToHexInput.value = ""),
+  };
 }

@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { getHighlightClass } from '@/utils/hex'
-import { usePacketData } from '@/composables/usePacketData'
-import type { AnalysisResult } from '@/types'
+import { computed } from "vue";
+import { getHighlightClass } from "@/utils/hex";
+import { usePacketData } from "@/composables/usePacketData";
+import type { AnalysisResult } from "@/types";
 
 const props = defineProps<{
-  result: AnalysisResult | null
-}>()
+  result: AnalysisResult | null;
+}>();
 
-const SPECIAL_COMMAND_ID = 46046
+const SPECIAL_COMMAND_ID = 46046;
 
 function formatBinary(binary: string): string {
-  return binary.replace(/(.{4})/g, '$1 ').trim()
+  return binary.replace(/(.{4})/g, "$1 ").trim();
 }
 
-const { receivePackets } = usePacketData(computed(() => props.result))
+const { receivePackets } = usePacketData(computed(() => props.result));
 
 const parsedData = computed(() => {
   return receivePackets.value
@@ -23,27 +23,32 @@ const parsedData = computed(() => {
       id: p.id,
       label: p.label,
       groups: p.bodySegments4 ?? [],
-    }))
-})
+    }));
+});
 
 const diffIndexSet = computed(() => {
-  if (parsedData.value.length < 2) return new Set<number>()
-  const maxLen = Math.max(...parsedData.value.map((d) => d.groups.length))
-  const diffs = new Set<number>()
+  if (parsedData.value.length < 2) return new Set<number>();
+  const maxLen = Math.max(...parsedData.value.map((d) => d.groups.length));
+  const diffs = new Set<number>();
   for (let i = 0; i < maxLen; i++) {
-    const values = parsedData.value.map((d) => d.groups[i]?.hex ?? '')
-    const first = values[0]
-    if (values.some((v) => v !== first)) diffs.add(i + 1)
+    const values = parsedData.value.map((d) => d.groups[i]?.hex ?? "");
+    const first = values[0];
+    if (values.some((v) => v !== first)) diffs.add(i + 1);
   }
-  return diffs
-})
+  return diffs;
+});
 </script>
 
 <template>
   <div class="panel h-full flex flex-col">
     <div class="section-title">
       <span class="flex items-center gap-2">
-        <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg
+          class="w-4 h-4 text-indigo-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -56,11 +61,22 @@ const diffIndexSet = computed(() => {
     </div>
 
     <div class="flex-1 overflow-x-auto overflow-y-auto">
-      <div v-if="parsedData.length === 0" class="text-gray-400 text-xs text-center py-4">暂无收包数据</div>
+      <div
+        v-if="parsedData.length === 0"
+        class="text-gray-400 text-xs text-center py-4"
+      >
+        暂无收包数据
+      </div>
       <div v-else class="flex gap-2">
-        <div v-for="(data, pIdx) in parsedData" :key="data.id" class="card inline-block flex-shrink-0">
+        <div
+          v-for="(data, pIdx) in parsedData"
+          :key="data.id"
+          class="card inline-block flex-shrink-0"
+        >
           <div class="text-purple-600 font-bold mb-1">{{ data.label }}</div>
-          <div v-if="data.groups.length === 0" class="text-gray-400">无数据</div>
+          <div v-if="data.groups.length === 0" class="text-gray-400">
+            无数据
+          </div>
           <div v-else class="space-y-0.5">
             <div
               v-for="group in data.groups"
@@ -68,7 +84,9 @@ const diffIndexSet = computed(() => {
               class="flex gap-1 px-1 py-0.5 rounded"
               :class="getHighlightClass(pIdx, group.index, diffIndexSet)"
             >
-              <span class="opacity-60 w-8 inline-block">[{{ group.index }}]</span>
+              <span class="opacity-60 w-8 inline-block"
+                >[{{ group.index }}]</span
+              >
               <span>{{ formatBinary(group.binary) }}</span>
             </div>
           </div>

@@ -1,36 +1,36 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { formatParamCount } from '@/utils/hex'
-import type { AnalysisResult } from '@/types'
+import { computed } from "vue";
+import { formatParamCount } from "@/utils/hex";
+import type { AnalysisResult } from "@/types";
 
 const props = defineProps<{
-  result: AnalysisResult | null
-}>()
+  result: AnalysisResult | null;
+}>();
 
 const headerFields = computed(() => {
-  if (!props.result?.packets.length) return []
+  if (!props.result?.packets.length) return [];
 
-  const first = props.result.packets[0]
+  const first = props.result.packets[0];
   return [
-    { name: '包长度', decimal: first.header.packetLength.decimal },
-    { name: '版本号', decimal: first.header.version.decimal },
-    { name: '命令号', decimal: first.header.commandId.decimal },
-    { name: '米米号', decimal: first.header.mimiId.decimal },
-    { name: '序列号', decimal: first.header.sequence.decimal },
-  ]
-})
+    { name: "包长度", decimal: first.header.packetLength.decimal },
+    { name: "版本号", decimal: first.header.version.decimal },
+    { name: "命令号", decimal: first.header.commandId.decimal },
+    { name: "米米号", decimal: first.header.mimiId.decimal },
+    { name: "序列号", decimal: first.header.sequence.decimal },
+  ];
+});
 
 const paramCountText = computed(() => {
-  if (!props.result) return '0'
-  return formatParamCount(props.result.packets)
-})
+  if (!props.result) return "0";
+  return formatParamCount(props.result.packets);
+});
 
 const diffIndices = computed(() => {
-  if (!props.result?.diffs.length) return ''
+  if (!props.result?.diffs.length) return "";
   return props.result.diffs
     .map((d: { index: number }) => `[${d.index}]`)
-    .join('')
-})
+    .join("");
+});
 </script>
 
 <template>

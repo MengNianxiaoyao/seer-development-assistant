@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import HexInput from '@/components/HexInput.vue'
-import ActionPanel from '@/components/ActionPanel.vue'
-import BinaryDisplay from '@/components/BinaryDisplay.vue'
-import OutputArea from '@/components/OutputArea.vue'
-import DiffArea from '@/components/DiffArea.vue'
-import HeaderPanel from '@/components/HeaderPanel.vue'
-import StatusBar from '@/components/StatusBar.vue'
-import ValidationErrorModal from '@/components/ValidationErrorModal.vue'
-import AlertModal from '@/components/AlertModal.vue'
-import { useAnalysis } from '@/composables/useAnalysis'
-import { useCtrlEnter } from '@/composables/useKeyboard'
-import { formatParamCount } from '@/utils/hex'
+import HexInput from "@/components/HexInput.vue";
+import ActionPanel from "@/components/ActionPanel.vue";
+import BinaryDisplay from "@/components/BinaryDisplay.vue";
+import OutputArea from "@/components/OutputArea.vue";
+import DiffArea from "@/components/DiffArea.vue";
+import HeaderPanel from "@/components/HeaderPanel.vue";
+import StatusBar from "@/components/StatusBar.vue";
+import ValidationErrorModal from "@/components/ValidationErrorModal.vue";
+import AlertModal from "@/components/AlertModal.vue";
+import { useAnalysis } from "@/composables/useAnalysis";
+import { useCtrlEnter } from "@/composables/useKeyboard";
+import { formatParamCount } from "@/utils/hex";
 
-import { computed } from 'vue'
+import { computed } from "vue";
 
 const {
   inputs,
@@ -32,14 +32,14 @@ const {
   handleImportFile,
   closeValidationModal,
   closeAlertModal,
-} = useAnalysis()
+} = useAnalysis();
 
-useCtrlEnter(handleAnalyze)
+useCtrlEnter(handleAnalyze);
 
 const paramCountText = computed(() => {
-  if (!result.value) return '0'
-  return formatParamCount(result.value.packets)
-})
+  if (!result.value) return "0";
+  return formatParamCount(result.value.packets);
+});
 </script>
 
 <template>
@@ -47,7 +47,7 @@ const paramCountText = computed(() => {
     <div class="flex-1 flex flex-col gap-2 md:gap-3 p-2 md:p-3 min-h-0">
       <!-- Mobile Layout -->
       <div class="md:hidden flex flex-col gap-2 flex-1 min-h-0">
-        <div class="flex-shrink-0" style="height: 200px;">
+        <div class="flex-shrink-0" style="height: 200px">
           <HexInput v-model:inputs="inputs" v-model:sendPacket="sendPacket" />
         </div>
         <div class="flex-shrink-0">
@@ -59,7 +59,7 @@ const paramCountText = computed(() => {
             @reset="handleReset"
           />
         </div>
-        <div class="flex-shrink-0" style="height: 150px;">
+        <div class="flex-shrink-0" style="height: 150px">
           <BinaryDisplay :result="result" />
         </div>
         <div class="flex-shrink-0">
@@ -77,7 +77,7 @@ const paramCountText = computed(() => {
 
       <!-- Desktop Layout -->
       <div class="hidden md:flex flex-col gap-3 flex-1 min-h-0">
-        <div class="flex gap-3 flex-shrink-0" style="height: 280px;">
+        <div class="flex gap-3 flex-shrink-0" style="height: 280px">
           <div class="w-[45%] min-w-0">
             <HexInput v-model:inputs="inputs" v-model:sendPacket="sendPacket" />
           </div>
@@ -95,7 +95,14 @@ const paramCountText = computed(() => {
           </div>
         </div>
 
-        <div class="flex gap-3 flex-shrink-0" style="height: calc(100vh - 340px); min-height: 300px; max-height: 550px;">
+        <div
+          class="flex gap-3 flex-shrink-0"
+          style="
+            height: calc(100vh - 340px);
+            min-height: 300px;
+            max-height: 550px;
+          "
+        >
           <div class="w-[80%] flex flex-col gap-3 min-w-0 h-full">
             <div class="h-[50%] overflow-hidden">
               <OutputArea :result="result" :format="displayFormat" />
@@ -119,8 +126,16 @@ const paramCountText = computed(() => {
       :loading="isLoading"
     />
 
-    <ValidationErrorModal v-if="showValidationModal" :errors="validationErrors" @close="closeValidationModal" />
+    <ValidationErrorModal
+      v-if="showValidationModal"
+      :errors="validationErrors"
+      @close="closeValidationModal"
+    />
 
-    <AlertModal v-if="showAlertModal" :message="alertMessage" @close="closeAlertModal" />
+    <AlertModal
+      v-if="showAlertModal"
+      :message="alertMessage"
+      @close="closeAlertModal"
+    />
   </div>
 </template>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 defineProps<{
-  placeholder?: string
-}>()
+  placeholder?: string;
+}>();
 
-const model = defineModel<string>({ required: true })
+const model = defineModel<string>({ required: true });
 </script>
 
 <template>
