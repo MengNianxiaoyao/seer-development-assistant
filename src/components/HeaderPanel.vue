@@ -16,9 +16,12 @@ const headerFields = computed(() => {
     { name: '命令号', decimal: first.header.commandId.decimal },
     { name: '米米号', decimal: first.header.mimiId.decimal },
     { name: '序列号', decimal: first.header.sequence.decimal },
-    { name: '参数总数', decimal: first.params.length },
-    { name: '参数数量', decimal: first.header.paramCount.decimal },
   ]
+})
+
+const paramCount = computed(() => {
+  if (!props.result?.packets.length) return 0
+  return props.result.packets[0].header.paramCount.decimal
 })
 
 const diffIndices = computed(() => {
@@ -67,6 +70,15 @@ const diffIndices = computed(() => {
         <span class="font-mono text-green-700 bg-gray-100 px-2 py-0.5 rounded">
           {{ field.decimal }}
         </span>
+      </div>
+
+      <div class="border-t border-gray-200 pt-1.5 mt-1.5">
+        <div class="flex items-center gap-2">
+          <span class="text-gray-500 w-20 flex-shrink-0">参数数量:</span>
+          <span class="font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+            {{ paramCount }}
+          </span>
+        </div>
       </div>
 
       <div class="border-t border-gray-200 pt-1.5 mt-1.5">

@@ -11,6 +11,8 @@ import ValidationErrorModal from '@/components/ValidationErrorModal.vue'
 import AlertModal from '@/components/AlertModal.vue'
 import { useAnalysis } from '@/composables/useAnalysis'
 
+import type { AnalysisResult } from '@/types'
+
 const {
   inputs,
   sendPacket,
@@ -32,10 +34,8 @@ const {
   closeAlertModal,
 } = useAnalysis()
 
-function getParamCount(result: any): number {
-  if (!result?.packets?.length) return 0
-  const first = result.packets[0]
-  return first.header.paramCount.decimal
+function getParamCount(result: AnalysisResult | null): number {
+  return result?.packets[0]?.header.paramCount.decimal ?? 0
 }
 
 function handleKeydown(e: globalThis.KeyboardEvent) {

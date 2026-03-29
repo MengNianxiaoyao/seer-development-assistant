@@ -60,14 +60,15 @@ const hasContent = computed(() => {
     <div v-else class="flex-1 overflow-x-auto overflow-y-auto">
       <div class="flex gap-2">
         <!-- 发包参数 -->
-        <div v-if="sendPacketParams.length > 0" class="card inline-block flex-shrink-0 border-2 border-orange-300">
+        <div v-if="result?.packets.some(p => p.label === '发包')" class="card inline-block flex-shrink-0 border-2 border-orange-300">
           <div class="text-orange-600 font-bold mb-1 flex items-center gap-1">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
             发包标识参数
           </div>
-          <div class="space-y-0.5">
+          <div v-if="sendPacketParams.length === 0" class="text-gray-400">无参数</div>
+          <div v-else class="space-y-0.5">
             <div
               v-for="param in sendPacketParams"
               :key="param.index"

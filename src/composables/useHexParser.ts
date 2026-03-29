@@ -7,6 +7,7 @@ import type {
   ParsedPacket,
   AnalysisResult,
   ValidationError,
+  BodySegment,
 } from '@/types'
 
 /**
@@ -27,8 +28,6 @@ const HEADER_SPECS = [
   { name: '米米号', length: 8 },
   { name: '序列号', length: 8 },
 ] as const
-
-const HEADER_FIXED_PART = 17 // 封包头固定部分字节数
 
 const SPECIAL_COMMAND_ID = 42023
 
@@ -51,9 +50,10 @@ export function useHexParser() {
       offset += field.length
     }
 
-    const packetLength = fields[0]
-    const paramCountFromLength = Math.max(0, (packetLength.decimal - HEADER_FIXED_PART) / 4)
-    const paramCountHex = decimalToHex(Math.floor(paramCountFromLength), 8)
+    // 参数数量根据封包实际长度计算，如果只有封包头则为0
+    const bodyLength = Math.max(0, hex.length - 34)
+    const paramCountFromLength = Math.floor(bodyLength / 8)
+    const paramCountHex = decimalToHex(paramCountFromLength, 8)
     const paramCountField = makeHeaderField('参数数量', paramCountHex)
 
     return {
@@ -69,27 +69,21 @@ export function useHexParser() {
     }
   }
 
+  function splitIntoSegments(bodyHex: string, chunkSize: number): BodySegment[] {
+    const segments: BodySegment[] = []
+    for (let i = 0, idx = 1; i + chunkSize <= bodyHex.length; i += chunkSize, idx++) {
+      const chunk = bodyHex.substring(i, i + chunkSize).padEnd(chunkSize, '0')
+      segments.push({ index: idx, hex: chunk, decimal: hexToDecimal(chunk), binary: hexToBinary(chunk) })
+    }
+    return segments
+  }
+
   function splitBodySegments(bodyHex: string) {
-    const clean = bodyHex
-    // 1-byte segments: 2 hex chars
-    const seg1: { index: number; hex: string; decimal: number; binary: string }[] = []
-    for (let i = 0, idx = 1; i + 2 <= clean.length; i += 2, idx++) {
-      const chunk = clean.substring(i, i + 2).padEnd(2, '0')
-      seg1.push({ index: idx, hex: chunk, decimal: hexToDecimal(chunk), binary: hexToBinary(chunk) })
+    return {
+      seg1: splitIntoSegments(bodyHex, 2),
+      seg2: splitIntoSegments(bodyHex, 4),
+      seg4: splitIntoSegments(bodyHex, 8),
     }
-    // 2-byte segments: 4 hex chars
-    const seg2: { index: number; hex: string; decimal: number; binary: string }[] = []
-    for (let i = 0, idx = 1; i + 4 <= clean.length; i += 4, idx++) {
-      const chunk = clean.substring(i, i + 4).padEnd(4, '0')
-      seg2.push({ index: idx, hex: chunk, decimal: hexToDecimal(chunk), binary: hexToBinary(chunk) })
-    }
-    // 4-byte segments: 8 hex chars
-    const seg4: { index: number; hex: string; decimal: number; binary: string }[] = []
-    for (let i = 0, idx = 1; i + 8 <= clean.length; i += 8, idx++) {
-      const chunk = clean.substring(i, i + 8).padEnd(8, '0')
-      seg4.push({ index: idx, hex: chunk, decimal: hexToDecimal(chunk), binary: hexToBinary(chunk) })
-    }
-    return { seg1, seg2, seg4 }
   }
 
   function parseSinglePacket(id: number, rawHex: string, label: string): ParsedPacket {
@@ -118,8 +112,8 @@ export function useHexParser() {
           binary: firstParam.binary,
         })
       }
-      // 后续用1字节
-      for (let i = 0; i < seg1.length; i++) {
+      // 后续用1字节，跳过第一个4字节参数的4个字节
+      for (let i = 4; i < seg1.length; i++) {
         params.push({
           index: params.length + 1,
           hex: seg1[i].hex,
@@ -137,11 +131,18 @@ export function useHexParser() {
       }))
     }
 
+    // 重新计算参数数量
+    const paramCountHex = decimalToHex(params.length, 8)
+    const paramCountField = makeHeaderField('参数数量', paramCountHex)
+
     return {
       id,
       label,
       raw: hex,
-      header,
+      header: {
+        ...header,
+        paramCount: paramCountField,
+      },
       params,
       isGrouped: params.length > 1,
       groupSize: 4,

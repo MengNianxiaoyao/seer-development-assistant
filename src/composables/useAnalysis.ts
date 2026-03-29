@@ -3,6 +3,29 @@ import { useHexParser } from './useHexParser'
 import { decimalToHex, makeHeaderField, findDifferences, downloadJson } from '@/utils/hex'
 import type { InputEntry, DisplayFormat, ValidationError, ParsedPacket, AnalysisResult, ParamItem, ExportData } from '@/types'
 
+interface ImportedPacket {
+  label?: string
+  raw?: string
+  header?: {
+    packetLength?: number
+    version?: number
+    commandId?: number
+    mimiId?: number
+    sequence?: number
+    paramCount?: number
+  }
+  params?: Array<{
+    index: number
+    hex?: string
+    decimal?: number
+    binary?: string
+  }>
+}
+
+interface ImportedData {
+  packets: ImportedPacket[]
+}
+
 const DEFAULT_INPUTS: InputEntry[] = [
   { id: 1, label: '收包1', value: '', enabled: true },
   { id: 2, label: '收包2', value: '', enabled: true },
@@ -103,28 +126,32 @@ export function useAnalysis() {
     downloadJson(exportData, `seer-analysis-${Date.now()}.json`)
   }
 
-  function parseJsonToPackets(data: any): ParsedPacket[] {
-    return data.packets.map((p: any, idx: number) => ({
-      id: idx + 1,
-      label: p.label || `收包${idx + 1}`,
-      raw: p.raw || '',
-      header: {
-        packetLength: makeHeaderField('封包长度', decimalToHex(p.header?.packetLength ?? 0, 8)),
-        version: makeHeaderField('版本号', decimalToHex(p.header?.version ?? 0, 2)),
-        commandId: makeHeaderField('命令号', decimalToHex(p.header?.commandId ?? 0, 8)),
-        mimiId: makeHeaderField('米米号', decimalToHex(p.header?.mimiId ?? 0, 8)),
-        sequence: makeHeaderField('序列号', decimalToHex(p.header?.sequence ?? 0, 8)),
-        paramCount: makeHeaderField('参数数量', decimalToHex(p.header?.paramCount ?? 0, 8)),
-      },
-      params: (p.params || []).map((param: any): ParamItem => ({
+  function parseJsonToPackets(data: ImportedData): ParsedPacket[] {
+    return data.packets.map((p, idx) => {
+      const params: ParamItem[] = (p.params || []).map((param) => ({
         index: param.index,
         hex: param.hex || '',
         decimal: param.decimal ?? 0,
         binary: param.binary || '',
-      })),
-      isGrouped: (p.header?.paramCount ?? 0) > 1,
-      groupSize: (p.header?.commandId ?? 0) === 42023 ? 2 : 8,
-    }))
+      }))
+
+      return {
+        id: idx + 1,
+        label: p.label || `收包${idx + 1}`,
+        raw: p.raw || '',
+        header: {
+          packetLength: makeHeaderField('封包长度', decimalToHex(p.header?.packetLength ?? 0, 8)),
+          version: makeHeaderField('版本号', decimalToHex(p.header?.version ?? 0, 2)),
+          commandId: makeHeaderField('命令号', decimalToHex(p.header?.commandId ?? 0, 8)),
+          mimiId: makeHeaderField('米米号', decimalToHex(p.header?.mimiId ?? 0, 8)),
+          sequence: makeHeaderField('序列号', decimalToHex(p.header?.sequence ?? 0, 8)),
+          paramCount: makeHeaderField('参数数量', decimalToHex(params.length, 8)),
+        },
+        params,
+        isGrouped: params.length > 1,
+        groupSize: 4,
+      }
+    })
   }
 
   function loadPacketsToState(packets: ParsedPacket[]) {

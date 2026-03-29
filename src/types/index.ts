@@ -21,6 +21,13 @@ export interface ParamItem {
   binary: string;
 }
 
+export interface BodySegment {
+  index: number;
+  hex: string;
+  decimal: number;
+  binary: string;
+}
+
 export interface ParsedPacket {
   id: number;
   label: string;
@@ -29,10 +36,9 @@ export interface ParsedPacket {
   params: ParamItem[];
   isGrouped: boolean;
   groupSize: number;
-  // Optional: body segment views split from the packet body (after header)
-  bodySegments1?: { index: number; hex: string; decimal: number; binary: string }[]
-  bodySegments2?: { index: number; hex: string; decimal: number; binary: string }[]
-  bodySegments4?: { index: number; hex: string; decimal: number; binary: string }[]
+  bodySegments1?: BodySegment[];
+  bodySegments2?: BodySegment[];
+  bodySegments4?: BodySegment[];
 }
 
 export interface DiffResult {

@@ -18,7 +18,7 @@ export function useConverter() {
     if (convertDirection.value === 'hexToFormat') {
       const selectedParams = filteredParams.value
       if (selectedParams.length === 0) {
-        return '请至少选择一个参数'
+        return commandId.value ? `{${commandId.value}}` : '请至少选择一个参数'
       }
       return `{${commandId.value},${selectedParams.map(p => p.value).join(',')}}`
     }
@@ -60,13 +60,13 @@ export function useConverter() {
       return '发包文本长度不足'
     }
 
-    if (parsed.params.length === 0) {
-      return '无参数数据'
-    }
-
     commandId.value = parsed.commandId
     parsedParams.value = parsed.params
     paramCount.value = parsed.params.length
+
+    if (parsed.params.length === 0) {
+      return `{${parsed.commandId}}`
+    }
 
     return `{${parsed.commandId},${parsed.params.map(p => p.value).join(',')}}`
   }
@@ -79,23 +79,10 @@ export function useConverter() {
 
     const [, cmdId, paramsStr] = match
     const params = paramsStr.split(',').map(p => parseInt(p, 10))
+    const paramHex = params.map(p => decimalToHex(p, 8)).join('')
+    const packetLength = 17 + params.length * 4
 
-    // 封包头：34位十六进制
-    // 封包长度 = 17 + 参数字节数
-    const paramByteLen = params.length * 4
-    const packetLength = 17 + paramByteLen
-    const header = decimalToHex(packetLength, 8)
-    const version = '31'
-    const cmdIdHex = decimalToHex(parseInt(cmdId, 10), 8)
-    const mimiId = '00000000'
-    const sequence = '00000000'
-
-    let paramHex = ''
-    params.forEach(p => {
-      paramHex += decimalToHex(p, 8)
-    })
-
-    return header + version + cmdIdHex + mimiId + sequence + paramHex
+    return decimalToHex(packetLength, 8) + '31' + decimalToHex(parseInt(cmdId, 10), 8) + '00000000' + '00000000' + paramHex
   }
 
   function handleConvert() {

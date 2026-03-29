@@ -41,8 +41,7 @@ export function formatValue(hex: string, decimal: number, binary: string, fmt: D
 
 export function getHighlightClass(packetIdx: number, paramIdx: number, diffIndexSet: Set<number>): string {
   if (!diffIndexSet.has(paramIdx)) return "bg-green-100 text-green-700"
-  const colors = ["bg-red-100 text-red-600", "bg-blue-100 text-blue-600"]
-  return colors[packetIdx % 2]
+  return packetIdx % 2 === 0 ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600"
 }
 
 export function findDifferences(packets: ParsedPacket[]): DiffResult[] {
