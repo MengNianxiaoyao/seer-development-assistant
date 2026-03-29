@@ -36,12 +36,8 @@ function parseHexToParams(hex: string) {
 function buildPacketHex(commandId: number, params: number[]) {
   const packetLength = 17 + params.length * 4
   return (
-    `${decimalToHex(packetLength, 8)
-    }00${
-      decimalToHex(commandId, 8)
-    }00000000`
-    + `00000000${
-      params.map(p => decimalToHex(p, 8)).join('')}`
+    `${decimalToHex(packetLength, 8)}00${decimalToHex(commandId, 8)}00000000`
+    + `00000000${params.map(p => decimalToHex(p, 8)).join('')}`
   )
 }
 
@@ -104,7 +100,7 @@ export function useConverter() {
     const parsed = parseFormatToParams(formatToHexInput.value.trim())
     if (!parsed)
       return '格式错误，正确格式: {commandId} 或 {commandId,param1,param2}'
-    if (isNaN(parsed.commandId) || parsed.commandId < 0)
+    if (Number.isNaN(parsed.commandId) || parsed.commandId < 0)
       return '命令号必须是有效的正整数'
     return parsed.params.length === 0 ? '当前封包无参数，仅有封包头' : ''
   })

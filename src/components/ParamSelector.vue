@@ -8,7 +8,7 @@ interface Param {
   selected: boolean
 }
 
-const props = defineProps<{
+defineProps<{
   params: Param[]
   filteredCount: number
 }>()
@@ -64,7 +64,8 @@ function toggleParam(index: number) {
         <div
           v-for="param in params"
           :key="param.index"
-          class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer select-none transition-all duration-200" :class="[
+          class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer select-none transition-all duration-200"
+          :class="[
             param.selected
               ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25 scale-[1.02]'
               : 'bg-white border border-gray-200 hover:border-indigo-300 hover:shadow-sm',
