@@ -5,7 +5,7 @@ import {
   downloadJson,
   getReceivePackets,
   getSendPacket,
-} from '@/utils/hex'
+} from '@/utils'
 
 function parseHexStrings(hexStrings: string[]): InputEntry[] {
   return hexStrings

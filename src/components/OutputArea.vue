@@ -2,7 +2,7 @@
 import type { AnalysisResult, DisplayFormat } from '@/types'
 import { computed, shallowRef } from 'vue'
 import { usePacketData } from '@/composables/usePacketData'
-import { copyToClipboard, formatValue, getHighlightClass } from '@/utils/hex'
+import { copyToClipboard, formatValue, getHighlightClass } from '@/utils'
 
 const props = defineProps<{
   result: AnalysisResult | null

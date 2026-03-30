@@ -1,7 +1,7 @@
 import type { ParsedParam } from '@/types'
 import { computed, ref, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
-import { cleanHex, decimalToHex, hexToDecimal } from '@/utils/hex'
+import { cleanHex, decimalToHex, hexToDecimal } from '@/utils'
 
 function parseHexToParams(hex: string) {
   const cleaned = cleanHex(hex)

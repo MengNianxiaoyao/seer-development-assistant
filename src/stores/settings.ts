@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
-
-const STORAGE_KEY = 'seer-special-commands'
-const DEFAULT_COMMANDS = [46046, 42399, 42023, 42033]
+import { STORAGE_KEY, DEFAULT_COMMANDS } from '@/constants'
 
 export const useSettingsStore = defineStore('settings', () => {
   const specialCommandIds = ref<number[]>(loadFromStorage())

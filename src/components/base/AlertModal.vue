@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import BaseModal from '@/components/BaseModal.vue'
-import Button from '@/components/Button.vue'
+import BaseModal from '@/components/base/BaseModal.vue'
+import Button from '@/components/base/Button.vue'
 
 defineProps<{
   message: string

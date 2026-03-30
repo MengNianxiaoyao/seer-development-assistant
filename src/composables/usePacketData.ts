@@ -5,7 +5,7 @@ import {
   createDiffIndexSet,
   getReceivePackets,
   getSendPacket,
-} from '@/utils/hex'
+} from '@/utils'
 
 export function usePacketData(result: Ref<AnalysisResult | null>) {
   const receivePackets = computed(() => {

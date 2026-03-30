@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Button from '@/components/Button.vue'
+import Button from '@/components/base/Button.vue'
 import FilePicker from '@/components/FilePicker.vue'
 
 const emit = defineEmits<{

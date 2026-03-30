@@ -16,18 +16,12 @@ import {
   makeBodySegment,
   makeHeaderField,
   makeParamItem,
-} from '@/utils/hex'
-
-const HEADER_SPECS = [
-  { name: '封包长度', length: 8 },
-  { name: '版本号', length: 2 },
-  { name: '命令号', length: 8 },
-  { name: '米米号', length: 8 },
-  { name: '序列号', length: 8 },
-] as const
-
-const SPECIAL_COMMAND_ID = 42023
-const HEADER_LENGTH = 34
+} from '@/utils'
+import {
+  HEADER_SPECS,
+  SPECIAL_COMMAND_ID,
+  HEADER_LENGTH,
+} from '@/constants'
 
 export function useHexParser() {
   const result = ref<AnalysisResult | null>(null)

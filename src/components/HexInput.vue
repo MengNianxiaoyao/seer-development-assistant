@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import Button from '@/components/Button.vue'
-import Checkbox from '@/components/Checkbox.vue'
-import Input from '@/components/Input.vue'
+import Button from '@/components/base/Button.vue'
+import Checkbox from '@/components/base/Checkbox.vue'
+import Input from '@/components/base/Input.vue'
 import { useAnalysisStore } from '@/stores/analysis'
 
 const store = useAnalysisStore()

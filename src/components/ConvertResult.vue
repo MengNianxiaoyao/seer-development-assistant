@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import Button from '@/components/Button.vue'
-import { copyToClipboard } from '@/utils/hex'
+import Button from '@/components/base/Button.vue'
+import { copyToClipboard } from '@/utils'
 
 const props = defineProps<{
   output: string

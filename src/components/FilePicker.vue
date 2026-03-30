@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
-import Button from '@/components/Button.vue'
+import Button from '@/components/base/Button.vue'
 
 const emit = defineEmits<{
   selected: [file: File]

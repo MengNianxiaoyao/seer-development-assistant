@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import Button from '@/components/Button.vue'
-import Checkbox from '@/components/Checkbox.vue'
+import Button from '@/components/base/Button.vue'
+import Checkbox from '@/components/base/Checkbox.vue'
 
 interface Param {
   index: number

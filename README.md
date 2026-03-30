@@ -89,38 +89,56 @@ pnpm prettier
 
 ```
 src/
-├── components/           # Vue 组件
-│   ├── AnalyzePage.vue   # 分析页面
-│   ├── ConvertPage.vue   # 转换页面
-│   ├── HexInput.vue      # 十六进制输入
-│   ├── BinaryDisplay.vue # 二进制显示
-│   ├── OutputArea.vue    # 输出区域
-│   ├── DiffArea.vue      # 差异对比
-│   ├── HeaderPanel.vue   # 头部信息
-│   ├── ActionPanel.vue   # 操作面板
-│   ├── StatusBar.vue     # 状态栏
-│   ├── ParamSelector.vue # 参数选择器
-│   ├── ConvertResult.vue # 转换结果
-│   ├── FilePicker.vue    # 文件选择器
-│   ├── Button.vue        # 按钮组件
-│   ├── Checkbox.vue      # 复选框
-│   ├── Input.vue        # 输入框组件
-│   ├── RadioGroup.vue    # 单选组
-│   ├── BaseModal.vue     # 基础模态框
-│   ├── ValidationErrorModal.vue # 验证错误模态框
-│   └── AlertModal.vue    # 警告模态框
-├── composables/          # 组合式函数
-│   ├── useAnalysis.ts    # 分析逻辑
-│   ├── useConverter.ts   # 转换逻辑
-│   ├── useHexParser.ts   # 十六进制解析
-│   ├── usePacketData.ts  # 数据处理
-│   ├── useKeyboard.ts    # 快捷键处理
-│   └── useImportExport.ts # 导入导出
-├── stores/               # Pinia 状态管理
-│   ├── analysis.ts       # 分析状态
-│   └── settings.ts       # 设置状态
-├── utils/
-│   └── hex.ts            # 十六进制工具函数
-└── types/
-    └── index.ts          # TypeScript 类型定义
+├── components/                    # Vue 组件
+│   ├── base/                      # 基础组件
+│   │   ├── Button.vue             # 按钮组件
+│   │   ├── Checkbox.vue           # 复选框
+│   │   ├── Input.vue              # 输入框组件
+│   │   ├── RadioGroup.vue         # 单选组
+│   │   ├── BaseModal.vue          # 基础模态框
+│   │   ├── AlertModal.vue         # 警告模态框
+│   │   ├── ValidationErrorModal.vue # 验证错误模态框
+│   │   └── MessageModal.vue       # 消息模态框
+│   ├── layout/                    # 布局组件
+│   │   └── PageLayout.vue         # 页面布局
+│   ├── pages/                     # 页面组件
+│   │   ├── AnalyzePage.vue        # 分析页面
+│   │   └── ConvertPage.vue        # 转换页面
+│   ├── HexInput.vue               # 十六进制输入
+│   ├── BinaryDisplay.vue          # 二进制显示
+│   ├── OutputArea.vue             # 输出区域
+│   ├── DiffArea.vue               # 差异对比
+│   ├── HeaderPanel.vue            # 头部信息
+│   ├── ActionPanel.vue            # 操作面板
+│   ├── StatusBar.vue              # 状态栏
+│   ├── ParamSelector.vue          # 参数选择器
+│   ├── ConvertResult.vue          # 转换结果
+│   └── FilePicker.vue             # 文件选择器
+├── composables/                   # 组合式函数
+│   ├── useAnalysis.ts             # 分析逻辑
+│   ├── useConverter.ts            # 转换逻辑
+│   ├── useHexParser.ts            # 十六进制解析
+│   ├── usePacketData.ts           # 数据处理
+│   ├── useKeyboard.ts             # 快捷键处理
+│   └── useImportExport.ts         # 导入导出
+├── stores/                        # Pinia 状态管理
+│   ├── analysis.ts                # 分析状态
+│   └── settings.ts                # 设置状态
+├── utils/                         # 工具函数
+│   ├── hex.ts                     # 十六进制转换
+│   ├── packet.ts                  # 封包处理
+│   ├── diff.ts                    # 差异对比
+│   ├── clipboard.ts               # 剪贴板操作
+│   └── index.ts                   # 统一导出
+├── types/                         # TypeScript 类型定义
+│   ├── common.ts                  # 通用类型
+│   ├── packet.ts                  # 封包类型
+│   ├── analysis.ts                # 分析类型
+│   ├── converter.ts               # 转换类型
+│   └── index.ts                   # 统一导出
+└── constants/                     # 常量定义
+    ├── packet.ts                  # 封包常量
+    ├── settings.ts                # 设置常量
+    ├── analysis.ts                # 分析常量
+    └── index.ts                   # 统一导出
 ```

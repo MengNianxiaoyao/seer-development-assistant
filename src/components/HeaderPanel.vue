@@ -5,7 +5,7 @@ import {
   formatParamCount,
   getReceivePackets,
   getSendPacket,
-} from '@/utils/hex'
+} from '@/utils'
 
 const props = defineProps<{
   result: AnalysisResult | null

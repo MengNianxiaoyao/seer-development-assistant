@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import Button from '@/components/Button.vue'
+import Button from '@/components/base/Button.vue'
 import ConvertResult from '@/components/ConvertResult.vue'
-import Input from '@/components/Input.vue'
+import Input from '@/components/base/Input.vue'
 import ParamSelector from '@/components/ParamSelector.vue'
 import { useConverter } from '@/composables/useConverter'
 import { useSettingsStore } from '@/stores/settings'

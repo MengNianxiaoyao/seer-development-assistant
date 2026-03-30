@@ -2,7 +2,7 @@
 import type { AnalysisResult, DisplayFormat, ParamItem } from '@/types'
 import { computed } from 'vue'
 import { usePacketData } from '@/composables/usePacketData'
-import { formatValue, getHighlightClass } from '@/utils/hex'
+import { formatValue, getHighlightClass } from '@/utils'
 
 const props = defineProps<{
   result: AnalysisResult | null

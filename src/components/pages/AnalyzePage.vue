@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import ActionPanel from '@/components/ActionPanel.vue'
-import AlertModal from '@/components/AlertModal.vue'
+import AlertModal from '@/components/base/AlertModal.vue'
 import BinaryDisplay from '@/components/BinaryDisplay.vue'
 import DiffArea from '@/components/DiffArea.vue'
 import HeaderPanel from '@/components/HeaderPanel.vue'
 import HexInput from '@/components/HexInput.vue'
 import OutputArea from '@/components/OutputArea.vue'
-import PageLayout from '@/components/PageLayout.vue'
-import ValidationErrorModal from '@/components/ValidationErrorModal.vue'
+import PageLayout from '@/components/layout/PageLayout.vue'
+import ValidationErrorModal from '@/components/base/ValidationErrorModal.vue'
 import { useAnalysis } from '@/composables/useAnalysis'
 
-import { formatParamCount, getReceivePackets } from '@/utils/hex'
+import { formatParamCount, getReceivePackets } from '@/utils'
 
 const emit = defineEmits<{
   statusChange: [

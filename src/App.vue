@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import AnalyzePage from '@/components/AnalyzePage.vue'
-import Button from '@/components/Button.vue'
-import ConvertPage from '@/components/ConvertPage.vue'
+import AnalyzePage from '@/components/pages/AnalyzePage.vue'
+import Button from '@/components/base/Button.vue'
+import ConvertPage from '@/components/pages/ConvertPage.vue'
 import StatusBar from '@/components/StatusBar.vue'
 
 const activeTab = ref<'analyze' | 'convert'>('analyze')

@@ -8,12 +8,7 @@ import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { useHexParser } from '@/composables/useHexParser'
 import { useImportExport } from '@/composables/useImportExport'
-
-const DEFAULT_INPUTS: InputEntry[] = [
-  { id: 1, label: '收包1', value: '', enabled: true, order: 0 },
-  { id: 2, label: '收包2', value: '', enabled: true, order: 0 },
-  { id: 3, label: '收包3', value: '', enabled: true, order: 0 },
-]
+import { DEFAULT_INPUTS } from '@/constants'
 
 export const useAnalysisStore = defineStore('analysis', () => {
   const inputs = ref<InputEntry[]>([...DEFAULT_INPUTS.map(i => ({ ...i }))])
