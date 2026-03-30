@@ -8,7 +8,7 @@ const props = defineProps<{
   result: AnalysisResult | null
 }>()
 
-const SPECIAL_COMMAND_ID = 46046
+const SPECIAL_COMMAND_IDS = [46046, 45866]
 
 function formatBinary(binary: string): string {
   return binary.replace(/(.{4})/g, '$1 ').trim()
@@ -18,10 +18,11 @@ const { receivePackets } = usePacketData(computed(() => props.result))
 
 const parsedData = computed(() => {
   return receivePackets.value
-    .filter(p => p.header.commandId.decimal === SPECIAL_COMMAND_ID)
+    .filter(p => SPECIAL_COMMAND_IDS.includes(p.header.commandId.decimal))
     .map(p => ({
       id: p.id,
       label: p.label,
+      commandId: p.header.commandId.decimal,
       groups: p.bodySegments4 ?? [],
     }))
 })
@@ -80,7 +81,7 @@ const diffIndexSet = computed(() => {
             d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79 8-4"
           />
         </svg>
-        <span class="text-xs">输入封包后自动解析(46046)</span>
+        <span class="text-xs">输入46046或45866收包后自动解析</span>
       </div>
       <div v-else class="flex gap-2">
         <div
