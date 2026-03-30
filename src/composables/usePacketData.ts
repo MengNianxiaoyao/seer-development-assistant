@@ -1,39 +1,52 @@
 import type { Ref } from 'vue'
-import type { AnalysisResult } from '@/types'
+import type { AnalysisResult, ParsedPacket } from '@/types'
 import { computed } from 'vue'
 import {
   createDiffIndexSet,
-  getReceivePackets,
-  getSendPacket,
+  separatePackets,
 } from '@/utils'
 
 export function usePacketData(result: Ref<AnalysisResult | null>) {
-  const receivePackets = computed(() => {
-    if (!result.value)
-      return []
-    return getReceivePackets(result.value.packets)
+  const separated = computed(() => {
+    const data = result.value
+    if (!data)
+      return { receivePackets: [], sendPacket: undefined }
+    return separatePackets(data.packets)
   })
 
-  const sendPacket = computed(() => {
-    if (!result.value)
-      return undefined
-    return getSendPacket(result.value.packets)
-  })
+  const receivePackets = computed(() => separated.value.receivePackets)
+
+  const sendPacket = computed(() => separated.value.sendPacket)
 
   const sendPacketParams = computed(() => {
-    return sendPacket.value?.params ?? []
+    const packet = sendPacket.value
+    return packet ? packet.params : []
   })
 
   const diffIndexSet = computed(() => {
-    if (!result.value?.diffs.length)
+    const diffs = result.value?.diffs
+    if (!diffs?.length)
       return new Set<number>()
-    return createDiffIndexSet(result.value.diffs)
+    return createDiffIndexSet(diffs)
   })
 
   const diffPackets = computed(() => {
-    return receivePackets.value.filter(p =>
-      p.params.some(param => diffIndexSet.value.has(param.index)),
-    )
+    const packets = receivePackets.value
+    const indices = diffIndexSet.value
+    if (indices.size === 0)
+      return []
+
+    const result: ParsedPacket[] = []
+    for (let i = 0; i < packets.length; i++) {
+      const params = packets[i].params
+      for (let j = 0; j < params.length; j++) {
+        if (indices.has(params[j].index)) {
+          result.push(packets[i])
+          break
+        }
+      }
+    }
+    return result
   })
 
   const hasDiffParams = computed(() => diffPackets.value.length > 0)

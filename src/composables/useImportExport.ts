@@ -1,10 +1,8 @@
-import type { AnalysisResult, ExportData, InputEntry } from '@/types'
+import type { AnalysisResult, ExportData, InputEntry, ParsedPacket } from '@/types'
 import { ref } from 'vue'
 import {
   cleanHex,
   downloadJson,
-  getReceivePackets,
-  getSendPacket,
 } from '@/utils'
 
 function parseHexStrings(hexStrings: string[]): InputEntry[] {
@@ -36,8 +34,20 @@ function restoreFromExportData(data: ExportData): {
   sendPacket: string
   result: AnalysisResult
 } {
-  const receivePackets = getReceivePackets(data.packets)
-  const sendPacketData = getSendPacket(data.packets)
+  const packets = data.packets
+  const len = packets.length
+  let sendPacketData: ParsedPacket | undefined
+  const receivePackets: ParsedPacket[] = []
+
+  for (let i = 0; i < len; i++) {
+    const packet = packets[i]
+    if (packet.type === 'send') {
+      sendPacketData = packet
+    }
+    else {
+      receivePackets.push(packet)
+    }
+  }
 
   const inputs: InputEntry[]
     = receivePackets.length > 0

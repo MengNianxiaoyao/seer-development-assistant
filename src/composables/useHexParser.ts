@@ -11,6 +11,7 @@ import { ref } from 'vue'
 import {
   HEADER_LENGTH,
   HEADER_SPECS,
+  SEND_PACKET_LABEL,
   SPECIAL_COMMAND_ID,
 } from '@/constants'
 import {
@@ -20,7 +21,6 @@ import {
   createParamItem,
   decimalToHex,
   findDifferences,
-  getReceivePackets,
 } from '@/utils'
 
 export function useHexParser() {
@@ -74,14 +74,13 @@ export function useHexParser() {
   }
 
   function parseParams(
-    bodyHex: string,
     commandIdDec: number,
     isSendPacket: boolean,
+    bodyHex: string,
   ): ParamItem[] {
-    const seg1 = splitIntoSegments(bodyHex, 2)
-    const seg4 = splitIntoSegments(bodyHex, 8)
-
     if (commandIdDec === SPECIAL_COMMAND_ID && !isSendPacket) {
+      const seg1 = splitIntoSegments(bodyHex, 2)
+      const seg4 = splitIntoSegments(bodyHex, 8)
       const params: ParamItem[] = []
       const firstParam = seg4[0]
       if (firstParam) {
@@ -93,6 +92,7 @@ export function useHexParser() {
       return params
     }
 
+    const seg4 = splitIntoSegments(bodyHex, 8)
     return seg4.map((s, idx) => createParamItem(idx + 1, s.hex))
   }
 
@@ -105,12 +105,14 @@ export function useHexParser() {
     const { header } = parseHeader(hex)
     const commandIdDec = header.commandId.decimal
     const bodyHex = hex.substring(HEADER_LENGTH)
-    const isSendPacket = label === '发包'
+    const isSendPacket = label === SEND_PACKET_LABEL
+    const packetType = isSendPacket ? 'send' : 'receive'
+
+    const params = parseParams(commandIdDec, isSendPacket, bodyHex)
 
     const seg1 = splitIntoSegments(bodyHex, 2)
     const seg2 = splitIntoSegments(bodyHex, 4)
     const seg4 = splitIntoSegments(bodyHex, 8)
-    const params = parseParams(bodyHex, commandIdDec, isSendPacket)
 
     const paramCountField = createHeaderField(
       '参数数量',
@@ -120,6 +122,7 @@ export function useHexParser() {
     return {
       id,
       label,
+      type: packetType,
       raw: hex,
       header: { ...header, paramCount: paramCountField },
       params,
@@ -138,25 +141,21 @@ export function useHexParser() {
     if (dataInputs.length < 1)
       return []
 
-    const cleanedInputs = dataInputs.map(input => ({
-      ...input,
-      raw: cleanHex(input.raw),
-    }))
+    let receiveInputs: typeof dataInputs = []
+    let sendInput: typeof dataInputs[0] | undefined
 
-    const receivePackets = cleanedInputs
-      .filter(input => input.label !== '发包')
-      .sort((a, b) => (a.order || 0) - (b.order || 0))
-
-    const sendPacket = cleanedInputs.find(input => input.label === '发包')
-
-    let baselineInput: (typeof cleanedInputs)[0] | undefined
-
-    if (receivePackets.length > 0) {
-      baselineInput = receivePackets[0]
+    for (const input of dataInputs) {
+      if (input.label === SEND_PACKET_LABEL) {
+        sendInput = input
+      }
+      else {
+        receiveInputs.push(input)
+      }
     }
-    else if (sendPacket) {
-      baselineInput = sendPacket
-    }
+
+    receiveInputs.sort((a, b) => (a.order || 0) - (b.order || 0))
+
+    const baselineInput = receiveInputs.length > 0 ? receiveInputs[0] : sendInput
 
     if (!baselineInput || cleanHex(baselineInput.raw).length < 34) {
       return []
@@ -169,22 +168,22 @@ export function useHexParser() {
     )
     const errors: ValidationError[] = []
 
-    for (const input of cleanedInputs.filter(i => i !== baselineInput)) {
+    for (let i = 0; i < dataInputs.length; i++) {
+      const input = dataInputs[i]
+      if (input === baselineInput)
+        continue
+
       const hex = cleanHex(input.raw)
       if (hex.length < 34)
         continue
 
       const current = parseSinglePacket(0, input.raw, input.label)
-      const reasons: string[] = []
 
       if (current.header.commandId.hex !== baseline.header.commandId.hex) {
-        reasons.push(
-          `命令号不一致：${current.header.commandId.decimal} ≠ ${baseline.header.commandId.decimal}`,
-        )
-      }
-
-      if (reasons.length > 0) {
-        errors.push({ label: input.label, reasons })
+        errors.push({
+          label: input.label,
+          reasons: [`命令号不一致：${current.header.commandId.decimal} ≠ ${baseline.header.commandId.decimal}`],
+        })
       }
     }
 
@@ -195,14 +194,21 @@ export function useHexParser() {
     inputs: { raw: string, enabled: boolean, label: string }[],
   ): AnalysisResult {
     const enabledInputs = inputs.filter(input => input.enabled && input.raw.trim())
-    const packets = enabledInputs.map((input, idx) =>
-      parseSinglePacket(idx + 1, input.raw, input.label),
-    )
+    const packets: ParsedPacket[] = []
+    const receivePackets: ParsedPacket[] = []
+    let totalParams = 0
 
-    const receivePackets = getReceivePackets(packets)
-    const diffs
-      = receivePackets.length >= 2 ? findDifferences(receivePackets) : []
-    const totalParams = packets.reduce((sum, p) => sum + p.params.length, 0)
+    for (let i = 0; i < enabledInputs.length; i++) {
+      const input = enabledInputs[i]
+      const packet = parseSinglePacket(i + 1, input.raw, input.label)
+      packets.push(packet)
+      totalParams += packet.params.length
+      if (packet.type === 'receive') {
+        receivePackets.push(packet)
+      }
+    }
+
+    const diffs = receivePackets.length >= 2 ? findDifferences(receivePackets) : []
 
     const res: AnalysisResult = {
       packets,

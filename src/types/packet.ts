@@ -17,6 +17,7 @@ export interface PacketHeader {
 export interface ParsedPacket {
   id: number
   label: string
+  type: PacketType
   raw: string
   header: PacketHeader
   params: ParamItem[]

@@ -1,15 +1,19 @@
 import type { DiffResult, ParsedPacket } from '@/types'
 
 export function findDifferences(packets: ParsedPacket[]): DiffResult[] {
-  if (packets.length < 2)
+  const packetCount = packets.length
+  if (packetCount < 2)
     return []
 
   let maxLen = 0
-  for (let i = 0; i < packets.length; i++) {
+  for (let i = 0; i < packetCount; i++) {
     const len = packets[i].params.length
     if (len > maxLen)
       maxLen = len
   }
+
+  if (maxLen === 0)
+    return []
 
   const diffs: DiffResult[] = []
 
@@ -18,15 +22,19 @@ export function findDifferences(packets: ParsedPacket[]): DiffResult[] {
     let allExist = true
     let firstValue: string | undefined
     let valuesMatch = true
+    let refParam: typeof packets[0]['params'][0] | undefined
 
-    for (let j = 0; j < packets.length; j++) {
+    for (let j = 0; j < packetCount; j++) {
       const param = packets[j].params[i]
       if (param) {
-        hasAny = true
-        if (firstValue === undefined)
+        if (!hasAny) {
+          hasAny = true
+          refParam = param
           firstValue = param.hex
-        else if (param.hex !== firstValue)
+        }
+        else if (param.hex !== firstValue) {
           valuesMatch = false
+        }
       }
       else {
         allExist = false
@@ -37,7 +45,6 @@ export function findDifferences(packets: ParsedPacket[]): DiffResult[] {
       continue
 
     if (!allExist || !valuesMatch) {
-      const refParam = packets.find(p => p.params[i])?.params[i]
       if (refParam) {
         diffs.push({
           index: i + 1,
@@ -53,7 +60,11 @@ export function findDifferences(packets: ParsedPacket[]): DiffResult[] {
 }
 
 export function createDiffIndexSet(diffs: DiffResult[]): Set<number> {
-  return new Set(diffs.map(diff => diff.index))
+  const set = new Set<number>()
+  for (let i = 0; i < diffs.length; i++) {
+    set.add(diffs[i].index)
+  }
+  return set
 }
 
 export function diffIndexSetFromPackets(packets: ParsedPacket[]): Set<number> {

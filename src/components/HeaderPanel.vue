@@ -3,26 +3,34 @@ import type { AnalysisResult } from '@/types'
 import { computed } from 'vue'
 import {
   formatParamCount,
-  getReceivePackets,
-  getSendPacket,
+  separatePackets,
 } from '@/utils'
 
 const props = defineProps<{
   result: AnalysisResult | null
 }>()
 
+const separated = computed(() => {
+  if (!props.result?.packets.length)
+    return { receivePackets: [], sendPacket: undefined }
+  return separatePackets(props.result.packets)
+})
+
 const headerFields = computed(() => {
   if (!props.result?.packets.length)
     return []
 
   const packets = props.result.packets
-  const sendPacket = getSendPacket(packets)
+  const sendPacket = separated.value.sendPacket
 
-  const maxPacketLength = Math.max(
-    ...packets.map(p => p.header.packetLength.decimal),
-  )
+  let maxPacketLength = 0
+  for (let i = 0; i < packets.length; i++) {
+    const len = packets[i].header.packetLength.decimal
+    if (len > maxPacketLength)
+      maxPacketLength = len
+  }
+
   const first = packets[0]
-
   const last = packets[packets.length - 1]
 
   return [
@@ -41,8 +49,7 @@ const headerFields = computed(() => {
 const paramCountText = computed(() => {
   if (!props.result)
     return '0'
-  const receivePackets = getReceivePackets(props.result.packets)
-  return formatParamCount(receivePackets)
+  return formatParamCount(separated.value.receivePackets)
 })
 
 const diffIndices = computed(() => {

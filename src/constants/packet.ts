@@ -9,3 +9,5 @@ export const HEADER_SPECS = [
 export const SPECIAL_COMMAND_ID = 42023
 
 export const HEADER_LENGTH = 34
+
+export const SEND_PACKET_LABEL = '发包'

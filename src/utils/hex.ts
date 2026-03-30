@@ -5,11 +5,31 @@ import type {
   ParamItem,
 } from '@/types'
 
+const HEX_TO_BINARY_MAP: Record<string, string> = {
+  0: '0000',
+  1: '0001',
+  2: '0010',
+  3: '0011',
+  4: '0100',
+  5: '0101',
+  6: '0110',
+  7: '0111',
+  8: '1000',
+  9: '1001',
+  A: '1010',
+  B: '1011',
+  C: '1100',
+  D: '1101',
+  E: '1110',
+  F: '1111',
+}
+
 export function hexToBinary(hex: string): string {
-  return hex
-    .split('')
-    .map(char => Number.parseInt(char, 16).toString(2).padStart(4, '0'))
-    .join('')
+  let result = ''
+  for (let i = 0; i < hex.length; i++) {
+    result += HEX_TO_BINARY_MAP[hex[i]] || '0000'
+  }
+  return result
 }
 
 export function hexToDecimal(hex: string): number {
