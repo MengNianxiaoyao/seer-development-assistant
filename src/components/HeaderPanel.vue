@@ -102,7 +102,7 @@ const diffIndices = computed(() => {
       <span class="text-xs">输入封包后显示标识参数</span>
     </div>
 
-    <div v-else class="flex-1 space-y-1.5 text-xs">
+    <div v-else class="flex-1 overflow-y-auto space-y-1.5 text-xs">
       <div
         v-for="field in headerFields"
         :key="field.name"
