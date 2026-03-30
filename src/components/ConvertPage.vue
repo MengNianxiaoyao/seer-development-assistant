@@ -72,27 +72,12 @@ function handleAddKeyup(e: KeyboardEvent) {
     <!-- 文本转参数 -->
     <div class="panel flex-1 flex flex-col min-w-0">
       <div class="section-title">
-        <span class="label-with-icon">
-          <svg
-            class="w-4 h-4 text-indigo-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 7l5 5m0 0l-5 5m5-5H6"
-            />
-          </svg>
-          发包文本 → 字节集参数
-        </span>
+        发包文本 → 字节集参数
         <Button
           type="default"
           size="sm"
-          class="ml-auto"
-          title="设置特殊命令号"
+          class="ml-auto flex"
+          title="设置命令号"
           @click="openSettings"
         >
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -164,22 +149,7 @@ function handleAddKeyup(e: KeyboardEvent) {
     <!-- 参数转文本 -->
     <div class="panel flex-1 flex flex-col min-w-0">
       <div class="section-title">
-        <span class="label-with-icon">
-          <svg
-            class="w-4 h-4 text-purple-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M11 17l-5-5m0 0l5-5m-5 5h12"
-            />
-          </svg>
-          字节集参数 → 发包文本
-        </span>
+        字节集参数 → 发包文本
       </div>
 
       <div class="flex-1 flex flex-col gap-2 overflow-auto">
@@ -241,7 +211,9 @@ function handleAddKeyup(e: KeyboardEvent) {
     >
       <div class="bg-white rounded-xl shadow-xl w-full max-w-sm modal-dialog">
         <div class="p-4 border-b border-gray-100">
-          <h3 class="text-sm font-semibold text-gray-800">特殊命令号设置</h3>
+          <h3 class="text-sm font-semibold text-gray-800">
+            命令号设置
+          </h3>
         </div>
         <div class="p-4 space-y-4">
           <p class="text-xs text-gray-500">

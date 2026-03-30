@@ -1,7 +1,7 @@
 import type { ParsedParam } from '@/types'
 import { computed, ref, watch } from 'vue'
-import { cleanHex, decimalToHex, hexToDecimal } from '@/utils/hex'
 import { useSettingsStore } from '@/stores/settings'
+import { cleanHex, decimalToHex, hexToDecimal } from '@/utils/hex'
 
 function parseHexToParams(hex: string) {
   const cleaned = cleanHex(hex)
@@ -139,7 +139,7 @@ export function useConverter() {
     selectAll: () => parsedParams.value.forEach(p => (p.selected = true)),
     deselectAll: () => {
       if (isSpecialCommand.value) {
-        parsedParams.value.forEach(p => {
+        parsedParams.value.forEach((p) => {
           if (p.index === 1)
             p.selected = true
           else
