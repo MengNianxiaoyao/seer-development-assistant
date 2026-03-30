@@ -11,7 +11,7 @@ import { useImportExport } from '@/composables/useImportExport'
 import { DEFAULT_INPUTS } from '@/constants'
 
 export const useAnalysisStore = defineStore('analysis', () => {
-  const inputs = ref<InputEntry[]>([...DEFAULT_INPUTS.map(i => ({ ...i }))])
+  const inputs = ref<InputEntry[]>([...DEFAULT_INPUTS.map(entry => ({ ...entry }))])
   const sendPacket = ref('')
   let inputOrder = 3
 
@@ -38,7 +38,7 @@ export const useAnalysisStore = defineStore('analysis', () => {
   const showValidationModal = ref(false)
 
   function doAnalyze() {
-    const dataInputs = inputs.value.filter(i => i.value.trim())
+    const dataInputs = inputs.value.filter(input => input.value.trim())
     const hasSendPacket = sendPacket.value.trim().length > 0
 
     if (dataInputs.length === 0 && !hasSendPacket) {
@@ -48,20 +48,20 @@ export const useAnalysisStore = defineStore('analysis', () => {
 
     displayFormat.value = 'hex'
 
-    dataInputs.forEach((i) => {
-      if (i.order === undefined || i.order === 0) {
+    dataInputs.forEach((input) => {
+      if (input.order === undefined || input.order === 0) {
         inputOrder++
-        i.order = inputOrder
+        input.order = inputOrder
       }
     })
 
     const sendPacketOrder = ++inputOrder
 
-    const allInputs = dataInputs.map(i => ({
-      raw: i.value,
-      enabled: i.enabled,
-      label: i.label,
-      order: i.order,
+    const allInputs = dataInputs.map(input => ({
+      raw: input.value,
+      enabled: input.enabled,
+      label: input.label,
+      order: input.order,
     }))
 
     if (hasSendPacket) {
@@ -95,7 +95,7 @@ export const useAnalysisStore = defineStore('analysis', () => {
   )
 
   function handleReset() {
-    inputs.value = DEFAULT_INPUTS.map(i => ({ ...i }))
+    inputs.value = DEFAULT_INPUTS.map(entry => ({ ...entry }))
     sendPacket.value = ''
     inputOrder = 0
     displayFormat.value = 'hex'
@@ -134,15 +134,15 @@ export const useAnalysisStore = defineStore('analysis', () => {
   }
 
   function updateInput(id: number, updates: Partial<InputEntry>) {
-    const index = inputs.value.findIndex(i => i.id === id)
+    const index = inputs.value.findIndex(input => input.id === id)
     if (index !== -1) {
       inputs.value[index] = { ...inputs.value[index], ...updates }
     }
   }
 
   function addInput() {
-    const maxId = Math.max(...inputs.value.map(i => i.id), 0)
-    const maxOrder = Math.max(...inputs.value.map(i => i.order || 0), 0)
+    const maxId = Math.max(...inputs.value.map(input => input.id), 0)
+    const maxOrder = Math.max(...inputs.value.map(input => input.order || 0), 0)
     inputs.value.push({
       id: maxId + 1,
       label: `收包${inputs.value.length + 1}`,
@@ -155,7 +155,7 @@ export const useAnalysisStore = defineStore('analysis', () => {
   function removeInput(id: number) {
     if (inputs.value.length <= 1)
       return
-    inputs.value = inputs.value.filter(i => i.id !== id)
+    inputs.value = inputs.value.filter(input => input.id !== id)
     reindexLabels()
   }
 

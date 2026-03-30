@@ -43,10 +43,10 @@ function buildPacketHex(commandId: number, params: number[]) {
 }
 
 function parseFormatToParams(format: string) {
-  const m = format.trim().match(/^\{(\d+)(?:,(\d+(?:,\d+)*))?\}$/)
-  if (!m)
+  const match = format.trim().match(/^\{(\d+)(?:,(\d+(?:,\d+)*))?\}$/)
+  if (!match)
     return null
-  const [, cmdId, paramsStr] = m
+  const [, cmdId, paramsStr] = match
   return {
     commandId: Number(cmdId),
     params: paramsStr ? paramsStr.split(',').map(Number) : [],

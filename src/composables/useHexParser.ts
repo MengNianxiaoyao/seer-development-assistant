@@ -9,19 +9,19 @@ import type {
 } from '@/types'
 import { ref } from 'vue'
 import {
+  HEADER_LENGTH,
+  HEADER_SPECS,
+  SPECIAL_COMMAND_ID,
+} from '@/constants'
+import {
   cleanHex,
+  createBodySegment,
+  createHeaderField,
+  createParamItem,
   decimalToHex,
   findDifferences,
   getReceivePackets,
-  makeBodySegment,
-  makeHeaderField,
-  makeParamItem,
 } from '@/utils'
-import {
-  HEADER_SPECS,
-  SPECIAL_COMMAND_ID,
-  HEADER_LENGTH,
-} from '@/constants'
 
 export function useHexParser() {
   const result = ref<AnalysisResult | null>(null)
@@ -35,14 +35,14 @@ export function useHexParser() {
       const chunk = hex
         .substring(offset, offset + field.length)
         .padEnd(field.length, '0')
-      fields.push(makeHeaderField(field.name, chunk))
+      fields.push(createHeaderField(field.name, chunk))
       offset += field.length
     }
 
     const bodyLength = Math.max(0, hex.length - HEADER_LENGTH)
     const paramCountFromLength = Math.floor(bodyLength / 8)
     const paramCountHex = decimalToHex(paramCountFromLength, 8)
-    const paramCountField = makeHeaderField('参数数量', paramCountHex)
+    const paramCountField = createHeaderField('参数数量', paramCountHex)
 
     return {
       header: {
@@ -68,7 +68,7 @@ export function useHexParser() {
       i += chunkSize, idx++
     ) {
       const chunk = bodyHex.substring(i, i + chunkSize).padEnd(chunkSize, '0')
-      segments.push(makeBodySegment(idx, chunk))
+      segments.push(createBodySegment(idx, chunk))
     }
     return segments
   }
@@ -85,15 +85,15 @@ export function useHexParser() {
       const params: ParamItem[] = []
       const firstParam = seg4[0]
       if (firstParam) {
-        params.push(makeParamItem(1, firstParam.hex))
+        params.push(createParamItem(1, firstParam.hex))
       }
       for (let i = 4; i < seg1.length; i++) {
-        params.push(makeParamItem(params.length + 1, seg1[i].hex))
+        params.push(createParamItem(params.length + 1, seg1[i].hex))
       }
       return params
     }
 
-    return seg4.map((s, idx) => makeParamItem(idx + 1, s.hex))
+    return seg4.map((s, idx) => createParamItem(idx + 1, s.hex))
   }
 
   function parseSinglePacket(
@@ -112,7 +112,7 @@ export function useHexParser() {
     const seg4 = splitIntoSegments(bodyHex, 8)
     const params = parseParams(bodyHex, commandIdDec, isSendPacket)
 
-    const paramCountField = makeHeaderField(
+    const paramCountField = createHeaderField(
       '参数数量',
       decimalToHex(params.length, 8),
     )
@@ -134,20 +134,20 @@ export function useHexParser() {
   function validate(
     inputs: { raw: string, enabled: boolean, label: string, order?: number }[],
   ): ValidationError[] {
-    const dataInputs = inputs.filter(i => i.enabled && i.raw.trim())
+    const dataInputs = inputs.filter(input => input.enabled && input.raw.trim())
     if (dataInputs.length < 1)
       return []
 
-    const cleanedInputs = dataInputs.map(i => ({
-      ...i,
-      raw: cleanHex(i.raw),
+    const cleanedInputs = dataInputs.map(input => ({
+      ...input,
+      raw: cleanHex(input.raw),
     }))
 
     const receivePackets = cleanedInputs
-      .filter(i => i.label !== '发包')
+      .filter(input => input.label !== '发包')
       .sort((a, b) => (a.order || 0) - (b.order || 0))
 
-    const sendPacket = cleanedInputs.find(i => i.label === '发包')
+    const sendPacket = cleanedInputs.find(input => input.label === '发包')
 
     let baselineInput: (typeof cleanedInputs)[0] | undefined
 
@@ -194,7 +194,7 @@ export function useHexParser() {
   function analyze(
     inputs: { raw: string, enabled: boolean, label: string }[],
   ): AnalysisResult {
-    const enabledInputs = inputs.filter(i => i.enabled && i.raw.trim())
+    const enabledInputs = inputs.filter(input => input.enabled && input.raw.trim())
     const packets = enabledInputs.map((input, idx) =>
       parseSinglePacket(idx + 1, input.raw, input.label),
     )

@@ -9,8 +9,8 @@ import {
 
 function parseHexStrings(hexStrings: string[]): InputEntry[] {
   return hexStrings
-    .map(h => cleanHex(h))
-    .filter(h => h.length > 0)
+    .map(hex => cleanHex(hex))
+    .filter(hex => hex.length > 0)
     .map((hex, idx) => ({
       id: idx + 1,
       label: `收包${idx + 1}`,
@@ -126,10 +126,10 @@ export function useImportExport() {
       // Not JSON, try as plain text with multiple hex strings
       const lines = content
         .split(/[\r\n]+/)
-        .map(l => l.trim())
-        .filter(l => l.length > 0)
-      if (lines.length > 0 && lines.every(l => /^[0-9a-f\s]+$/i.test(l))) {
-        return { format: 'hex', data: lines.map(l => l.replace(/\s/g, '')) }
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+      if (lines.length > 0 && lines.every(line => /^[0-9a-f\s]+$/i.test(line))) {
+        return { format: 'hex', data: lines.map(line => line.replace(/\s/g, '')) }
       }
       return { format: 'unknown', data: [] }
     }

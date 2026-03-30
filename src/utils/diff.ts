@@ -53,7 +53,7 @@ export function findDifferences(packets: ParsedPacket[]): DiffResult[] {
 }
 
 export function createDiffIndexSet(diffs: DiffResult[]): Set<number> {
-  return new Set(diffs.map(d => d.index))
+  return new Set(diffs.map(diff => diff.index))
 }
 
 export function diffIndexSetFromPackets(packets: ParsedPacket[]): Set<number> {

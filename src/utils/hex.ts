@@ -8,7 +8,7 @@ import type {
 export function hexToBinary(hex: string): string {
   return hex
     .split('')
-    .map(c => Number.parseInt(c, 16).toString(2).padStart(4, '0'))
+    .map(char => Number.parseInt(char, 16).toString(2).padStart(4, '0'))
     .join('')
 }
 
@@ -24,7 +24,7 @@ export function cleanHex(raw: string): string {
   return raw.replace(/[^0-9a-f]/gi, '').toUpperCase()
 }
 
-export function makeHexValue(hex: string): Omit<ParamItem, 'index'> {
+export function createHexValue(hex: string): Omit<ParamItem, 'index'> {
   return {
     hex,
     decimal: hexToDecimal(hex),
@@ -32,24 +32,24 @@ export function makeHexValue(hex: string): Omit<ParamItem, 'index'> {
   }
 }
 
-export function makeHeaderField(name: string, hex: string): HeaderField {
+export function createHeaderField(name: string, hex: string): HeaderField {
   return {
     name,
-    ...makeHexValue(hex),
+    ...createHexValue(hex),
   }
 }
 
-export function makeBodySegment(index: number, hex: string): BodySegment {
+export function createBodySegment(index: number, hex: string): BodySegment {
   return {
     index,
-    ...makeHexValue(hex),
+    ...createHexValue(hex),
   }
 }
 
-export function makeParamItem(index: number, hex: string): ParamItem {
+export function createParamItem(index: number, hex: string): ParamItem {
   return {
     index,
-    ...makeHexValue(hex),
+    ...createHexValue(hex),
   }
 }
 

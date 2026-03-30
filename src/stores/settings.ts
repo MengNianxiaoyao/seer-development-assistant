@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
-import { STORAGE_KEY, DEFAULT_COMMANDS } from '@/constants'
+import { DEFAULT_COMMANDS, STORAGE_KEY } from '@/constants'
 
 export const useSettingsStore = defineStore('settings', () => {
   const specialCommandIds = ref<number[]>(loadFromStorage())
@@ -10,7 +10,7 @@ export const useSettingsStore = defineStore('settings', () => {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
         const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed) && parsed.every(n => typeof n === 'number')) {
+        if (Array.isArray(parsed) && parsed.every(item => typeof item === 'number')) {
           return parsed
         }
       }

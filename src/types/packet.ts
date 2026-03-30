@@ -1,8 +1,8 @@
 import type {
   BodySegment,
   HeaderField,
-  ParamItem,
   PacketType,
+  ParamItem,
 } from './common'
 
 export interface PacketHeader {
