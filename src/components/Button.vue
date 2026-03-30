@@ -1,7 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   type?: 'primary' | 'warning' | 'danger' | 'success' | 'default'
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'xs'
 }>()
 
 const emit = defineEmits<{
@@ -12,7 +12,7 @@ const emit = defineEmits<{
 <template>
   <button
     :class="[
-      size === 'sm' ? 'btn-sm' : 'btn-md',
+      size === 'xs' ? 'btn-xs' : size === 'sm' ? 'btn-sm' : 'btn-md',
       {
         'btn-primary': type === 'primary' || !type,
         'btn-warning': type === 'warning',

@@ -1,6 +1,7 @@
 import type { ParsedParam } from '@/types'
 import { computed, ref, watch } from 'vue'
 import { cleanHex, decimalToHex, hexToDecimal } from '@/utils/hex'
+import { useSettingsStore } from '@/stores/settings'
 
 function parseHexToParams(hex: string) {
   const cleaned = cleanHex(hex)
@@ -53,6 +54,7 @@ function parseFormatToParams(format: string) {
 }
 
 export function useConverter() {
+  const settingsStore = useSettingsStore()
   const hexToFormatInput = ref('')
   const formatToHexInput = ref('')
   const parsedParams = ref<ParsedParam[]>([])
@@ -66,6 +68,13 @@ export function useConverter() {
   const commandId = computed(() => hexResult.value?.commandId ?? '')
   const hexToFormatError = computed(() => hexResult.value?.error ?? '')
 
+  const isSpecialCommand = computed(() => {
+    if (parsedParams.value.length <= 1)
+      return false
+    const id = Number(commandId.value)
+    return settingsStore.isSpecialCommand(id)
+  })
+
   watch(
     hexToFormatInput,
     (val: string) => {
@@ -76,14 +85,21 @@ export function useConverter() {
     { immediate: true },
   )
 
-  const filteredParams = computed(() =>
-    parsedParams.value.filter(p => p.selected),
-  )
+  const filteredParams = computed(() => {
+    if (isSpecialCommand.value) {
+      return parsedParams.value.filter(p => p.selected && p.index > 1)
+    }
+    return parsedParams.value.filter(p => p.selected)
+  })
 
   const hexToFormatOutput = computed(() => {
     if (!commandId.value)
       return ''
+    const count = filteredParams.value.length
     const params = filteredParams.value.map(p => p.value).join(',')
+    if (isSpecialCommand.value) {
+      return `{${commandId.value},${count},${params}}`
+    }
     return params ? `{${commandId.value},${params}}` : `{${commandId.value}}`
   })
 
@@ -115,16 +131,39 @@ export function useConverter() {
     parsedParams,
     commandId,
     filteredParams,
+    isSpecialCommand,
     hexToFormatOutput,
     hexToFormatError,
     hasHexToFormatResult: computed(() => !!commandId.value),
     handleHexToFormatReset,
     selectAll: () => parsedParams.value.forEach(p => (p.selected = true)),
-    deselectAll: () => parsedParams.value.forEach(p => (p.selected = false)),
+    deselectAll: () => {
+      if (isSpecialCommand.value) {
+        parsedParams.value.forEach(p => {
+          if (p.index === 1)
+            p.selected = true
+          else
+            p.selected = false
+        })
+      }
+      else {
+        parsedParams.value.forEach(p => (p.selected = false))
+      }
+    },
     toggleParam: (idx: number) => {
       const p = parsedParams.value.find(p => p.index === idx)
-      if (p)
-        p.selected = !p.selected
+      if (!p)
+        return
+
+      if (isSpecialCommand.value) {
+        if (idx === 1 || (p.selected && filteredParams.value.length <= 1))
+          return
+      }
+      else if (p.selected && filteredParams.value.length <= 1) {
+        return
+      }
+
+      p.selected = !p.selected
     },
     formatToHexInput,
     formatToHexOutput,

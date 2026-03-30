@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import Button from '@/components/Button.vue'
 import Checkbox from '@/components/Checkbox.vue'
 
@@ -8,9 +9,10 @@ interface Param {
   selected: boolean
 }
 
-defineProps<{
+const props = defineProps<{
   params: Param[]
   filteredCount: number
+  isSpecialCommand?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -19,7 +21,30 @@ const emit = defineEmits<{
   toggle: [index: number]
 }>()
 
+const displayParams = computed(() => {
+  if (props.isSpecialCommand) {
+    return props.params.filter(p => p.index !== 1)
+  }
+  return props.params
+})
+
+const showHint = ref(false)
+let hintTimer: ReturnType<typeof setTimeout> | null = null
+
 function toggleParam(index: number) {
+  if (props.isSpecialCommand) {
+    const param = props.params.find(p => p.index === index)
+    if (param?.selected && props.filteredCount <= 1) {
+      if (hintTimer)
+        clearTimeout(hintTimer)
+      showHint.value = true
+      hintTimer = setTimeout(() => {
+        showHint.value = false
+        hintTimer = null
+      }, 2000)
+      return
+    }
+  }
   emit('toggle', index)
 }
 </script>
@@ -45,14 +70,19 @@ function toggleParam(index: number) {
         <span
           class="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 rounded text-[10px] font-medium"
         >
-          {{ filteredCount }} / {{ params.length }}
+          {{ filteredCount }} / {{ displayParams.length }}
         </span>
       </div>
       <div class="flex gap-2">
         <Button type="primary" size="sm" @click="emit('selectAll')">
           全选
         </Button>
-        <Button type="primary" size="sm" @click="emit('deselectAll')">
+        <Button
+          type="primary"
+          size="sm"
+          :disabled="isSpecialCommand"
+          @click="emit('deselectAll')"
+        >
           取消
         </Button>
       </div>
@@ -62,7 +92,7 @@ function toggleParam(index: number) {
     >
       <div class="flex flex-wrap gap-2">
         <div
-          v-for="param in params"
+          v-for="(param, idx) in displayParams"
           :key="param.index"
           class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer select-none transition-all duration-200"
           :class="[
@@ -77,7 +107,7 @@ function toggleParam(index: number) {
             class="text-xs font-mono font-medium"
             :class="param.selected ? 'text-white' : 'text-gray-600'"
           >
-            参数{{ param.index }}
+            参数{{ idx + 1 }}
           </span>
           <span
             class="text-xs font-mono"
@@ -90,6 +120,12 @@ function toggleParam(index: number) {
             {{ param.value }}
           </span>
         </div>
+      </div>
+      <div
+        v-if="showHint"
+        class="mt-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-600"
+      >
+        至少需要保留1个参数
       </div>
     </div>
   </div>

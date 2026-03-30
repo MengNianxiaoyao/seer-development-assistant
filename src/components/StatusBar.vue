@@ -40,7 +40,7 @@ const version = computed(() => __APP_VERSION__)
         分析完成，有效包 {{ validPackets }} 个，参数数量
         {{ paramCount }} 个，相异参数 {{ diffCount }} 个。
       </span>
-      <span v-else class="text-gray-400">就绪（Ctrl+Enter 快速分析）</span>
+      <span v-else class="text-gray-400">就绪</span>
     </template>
     <span v-else />
     <span class="text-gray-500">v{{ version }}</span>

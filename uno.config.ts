@@ -21,6 +21,7 @@ export default defineConfig({
 
     // Buttons
     'btn-base': 'font-medium cursor-pointer border-none outline-none select-none active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200',
+    'btn-xs': 'btn-base px-2 py-0.5 text-[10px] rounded',
     'btn-sm': 'btn-base px-3 py-1 text-xs rounded-md',
     'btn-md': 'btn-base px-4 py-1.5 text-sm rounded-lg',
     'btn-primary': 'bg-gradient-to-r from-purple-600 to-violet-600 text-white shadow-md shadow-purple-500/20 hover:shadow-lg hover:shadow-purple-500/30 hover:from-purple-500 hover:to-violet-500',
