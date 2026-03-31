@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
 import Button from '@/components/base/Button.vue'
 import FilePicker from '@/components/FilePicker.vue'
+import { useAnalysisStore } from '@/stores/analysis'
 
 const emit = defineEmits<{
   export: []
@@ -8,6 +11,13 @@ const emit = defineEmits<{
   reset: []
   importFile: [content: string]
 }>()
+
+const store = useAnalysisStore()
+const { displayFormat } = storeToRefs(store)
+
+const formatButtonText = computed(() => {
+  return displayFormat.value === 'hex' ? '转10进制' : '转16进制'
+})
 
 function handleFileSelected(file: File) {
   const reader = new FileReader()
@@ -55,7 +65,7 @@ function handleFileSelected(file: File) {
               d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
             />
           </svg>
-          转十进制
+          {{ formatButtonText }}
         </span>
       </Button>
 

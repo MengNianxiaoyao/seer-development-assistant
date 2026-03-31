@@ -103,7 +103,7 @@ export const useAnalysisStore = defineStore('analysis', () => {
   }
 
   function handleConvertDecimal() {
-    displayFormat.value = 'decimal'
+    displayFormat.value = displayFormat.value === 'hex' ? 'decimal' : 'hex'
   }
 
   function handleExportClick() {

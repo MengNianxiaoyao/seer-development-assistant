@@ -141,7 +141,7 @@ export function useHexParser() {
     if (dataInputs.length < 1)
       return []
 
-    let receiveInputs: typeof dataInputs = []
+    const receiveInputs: typeof dataInputs = []
     let sendInput: typeof dataInputs[0] | undefined
 
     for (const input of dataInputs) {
