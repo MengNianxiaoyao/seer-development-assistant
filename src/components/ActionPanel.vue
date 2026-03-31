@@ -13,7 +13,7 @@ const emit = defineEmits<{
 }>()
 
 const store = useAnalysisStore()
-const { displayFormat } = storeToRefs(store)
+const { displayFormat, result } = storeToRefs(store)
 
 const formatButtonText = computed(() => {
   return displayFormat.value === 'hex' ? '转10进制' : '转16进制'
@@ -25,6 +25,15 @@ function handleFileSelected(file: File) {
     emit('importFile', reader.result as string)
   }
   reader.readAsText(file)
+}
+
+function handleConvertFormat() {
+  if (!result.value || result.value.packets.length === 0) {
+    store.alertMessage = '请先输入封包后再进行格式转换'
+    store.showAlertModal = true
+    return
+  }
+  emit('convertDecimal')
 }
 </script>
 
@@ -50,7 +59,7 @@ function handleFileSelected(file: File) {
     </div>
 
     <div class="space-y-1.5 -mt-1">
-      <Button type="warning" class="w-full" @click="emit('convertDecimal')">
+      <Button type="warning" class="w-full" @click="handleConvertFormat">
         <span class="flex items-center justify-center gap-1.5">
           <svg
             class="w-4 h-4"
