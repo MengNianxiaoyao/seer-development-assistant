@@ -56,6 +56,16 @@ export function parseSpecialFormat(raw: string): { commandId: string, params: st
   return null
 }
 
+export function parseRawToHex(raw: string, headerLength: number): string {
+  const specialParsed = parseSpecialFormat(raw)
+  if (specialParsed) {
+    const paramsHex = specialParsed.params
+    const packetLength = headerLength + paramsHex.length
+    return `${decimalToHex(packetLength, 8)}00${specialParsed.commandId}0000000000000000${paramsHex}`
+  }
+  return cleanHex(raw)
+}
+
 export function createHexValue(hex: string): Omit<ParamItem, 'index'> {
   return {
     hex,
