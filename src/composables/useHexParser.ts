@@ -21,6 +21,7 @@ import {
   createParamItem,
   decimalToHex,
   findDifferences,
+  parseSpecialFormat,
 } from '@/utils'
 
 export function useHexParser() {
@@ -101,7 +102,20 @@ export function useHexParser() {
     rawHex: string,
     label: string,
   ): ParsedPacket {
-    const hex = cleanHex(rawHex)
+    let hex = cleanHex(rawHex)
+
+    const specialParsed = parseSpecialFormat(rawHex)
+    if (specialParsed) {
+      const paramsHex = specialParsed.params
+      const bodyLength = paramsHex.length
+      const packetLength = HEADER_LENGTH + bodyLength
+      hex = decimalToHex(packetLength, 8)
+        + '00'
+        + specialParsed.commandId
+        + '0000000000000000'
+        + paramsHex
+    }
+
     const { header } = parseHeader(hex)
     const commandIdDec = header.commandId.decimal
     const bodyHex = hex.substring(HEADER_LENGTH)

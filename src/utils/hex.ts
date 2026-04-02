@@ -44,6 +44,18 @@ export function cleanHex(raw: string): string {
   return raw.replace(/[^0-9a-f]/gi, '').toUpperCase()
 }
 
+export function parseSpecialFormat(raw: string): { commandId: string, params: string } | null {
+  const match = raw.match(/^(\d+)[,\s]+0x([0-9a-fA-F]+)$/)
+  if (match) {
+    const commandId = Number.parseInt(match[1], 10)
+    return {
+      commandId: decimalToHex(commandId, 8),
+      params: match[2].toUpperCase().padStart(8, '0'),
+    }
+  }
+  return null
+}
+
 export function createHexValue(hex: string): Omit<ParamItem, 'index'> {
   return {
     hex,
