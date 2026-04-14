@@ -46,8 +46,6 @@ export const useAnalysisStore = defineStore('analysis', () => {
       return
     }
 
-    displayFormat.value = 'hex'
-
     dataInputs.forEach((input) => {
       if (input.order === undefined || input.order === 0) {
         inputOrder++
