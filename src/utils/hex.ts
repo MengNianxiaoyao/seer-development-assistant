@@ -4,6 +4,7 @@ import type {
   HexByteSize,
   ParamItem,
 } from '@/types'
+import { SPECIAL_COMMAND_ID } from '@/constants'
 
 const HEX_TO_BINARY_MAP: Record<string, string> = {
   0: '0000',
@@ -95,13 +96,17 @@ export function createParamItem(index: number, hex: string): ParamItem {
   }
 }
 
-export function formatValue(hex: string, hexByteSize: HexByteSize): string {
-  const maxDigits = hexByteSize === 2 ? 3 : hexByteSize === 4 ? 5 : 0
+const MAX_DIGITS: Record<number, number> = { 2: 3, 4: 5 }
+
+export function formatValue(hex: string, hexByteSize: HexByteSize, commandId?: number): string {
+  if (commandId === SPECIAL_COMMAND_ID)
+    return hex
+
+  const maxDigits = MAX_DIGITS[hexByteSize] ?? 0
   const parts: string[] = []
   for (let i = 0; i < hex.length; i += hexByteSize) {
-    const part = hex.slice(i, i + hexByteSize)
-    const num = Number.parseInt(part, 16)
-    parts.push(maxDigits ? num.toString().padEnd(maxDigits, '\u00A0') : num.toString())
+    const num = Number.parseInt(hex.slice(i, i + hexByteSize), 16)
+    parts.push(maxDigits ? num.toString().padEnd(maxDigits, '\u00A0') : String(num))
   }
   return parts.join('\u00A0')
 }

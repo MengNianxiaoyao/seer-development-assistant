@@ -16,6 +16,13 @@ const emit = defineEmits<{
 
 const copiedIndex = shallowRef<number | null>(null)
 
+const HEX_BYTE_SIZE_OPTIONS = [
+  { value: 1, label: '1位' },
+  { value: 2, label: '2位' },
+  { value: 4, label: '4位' },
+  { value: 8, label: '8位' },
+]
+
 const { receivePackets, sendPacketParams, diffIndexSet } = usePacketData(
   computed(() => props.result),
 )
@@ -40,7 +47,7 @@ const receivePacketsWithFormat = computed(() => {
     ...packet,
     params: packet.params.map(param => ({
       ...param,
-      formatted: formatValue(param.hex, props.hexByteSize),
+      formatted: formatValue(param.hex, props.hexByteSize, packet.header.commandId.decimal),
     })),
   }))
 })
@@ -96,12 +103,7 @@ async function handleCopy(value: string, index: number) {
         <span class="text-[10px] text-gray-400">十六进制位数：</span>
         <RadioGroup
           :model-value="hexByteSize"
-          :options="[
-            { value: 1, label: '1位' },
-            { value: 2, label: '2位' },
-            { value: 4, label: '4位' },
-            { value: 8, label: '8位' },
-          ]"
+          :options="HEX_BYTE_SIZE_OPTIONS"
           @update:model-value="emit('update:hexByteSize', $event as HexByteSize)"
         />
       </div>

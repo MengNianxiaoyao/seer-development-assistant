@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AnalysisResult, HexByteSize, ParamItem } from '@/types'
+import type { AnalysisResult, HexByteSize } from '@/types'
 import { computed } from 'vue'
 import { usePacketData } from '@/composables/usePacketData'
 import { formatValue, getHighlightClass } from '@/utils'
@@ -18,23 +18,23 @@ const diffIndices = computed(() => {
 })
 
 function getParamValue(
-  packet: { params: ParamItem[] },
+  packet: { params: { index: number, hex: string }[] },
   index: number,
-): ParamItem | undefined {
+): { hex: string } | undefined {
   return packet.params.find(p => p.index === index)
 }
 
 function formatParamValue(
-  packet: { params: ParamItem[] },
+  packet: { params: { index: number, hex: string }[], header: { commandId: { decimal: number } } },
   index: number,
 ): string {
   const param = getParamValue(packet, index)
   if (!param)
     return ''
-  return formatValue(param.hex, props.hexByteSize)
+  return formatValue(param.hex, props.hexByteSize, packet.header.commandId.decimal)
 }
 
-function hasParam(packet: { params: ParamItem[] }, index: number): boolean {
+function hasParam(packet: { params: { index: number, hex: string }[] }, index: number): boolean {
   return getParamValue(packet, index) !== undefined
 }
 </script>

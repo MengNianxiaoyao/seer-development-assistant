@@ -8,13 +8,11 @@
       "DOM.Iterable"
     ],
     "useDefineForClassFields": true,
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ]
     },
     "resolveJsonModule": true,
