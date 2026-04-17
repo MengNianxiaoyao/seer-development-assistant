@@ -1,3 +1,4 @@
+import type { HexByteSize } from './common'
 import type { DiffResult, ParsedPacket } from './packet'
 
 export interface AnalysisResult {
@@ -26,6 +27,7 @@ export interface ExportData {
   validPackets: number
   totalParams: number
   diffCount: number
+  hexByteSize: HexByteSize
   packets: ParsedPacket[]
   diffs: DiffResult[]
 }

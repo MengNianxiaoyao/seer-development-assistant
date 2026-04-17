@@ -1,5 +1,5 @@
 import type {
-  DisplayFormat,
+  HexByteSize,
   InputEntry,
   ValidationError,
 } from '@/types'
@@ -31,7 +31,7 @@ export const useAnalysisStore = defineStore('analysis', () => {
     closeAlertModal,
   } = useImportExport()
 
-  const displayFormat = ref<DisplayFormat>('hex')
+  const hexByteSize = ref<HexByteSize>(8)
   const isLoading = ref(false)
 
   const validationErrors = ref<ValidationError[]>([])
@@ -96,16 +96,16 @@ export const useAnalysisStore = defineStore('analysis', () => {
     inputs.value = DEFAULT_INPUTS.map(entry => ({ ...entry }))
     sendPacket.value = ''
     inputOrder = 0
-    displayFormat.value = 'hex'
+    hexByteSize.value = 8
     resetParser()
   }
 
-  function handleConvertDecimal() {
-    displayFormat.value = displayFormat.value === 'hex' ? 'decimal' : 'hex'
+  function handleHexByteSizeChange(size: HexByteSize) {
+    hexByteSize.value = size
   }
 
   function handleExportClick() {
-    handleExport(result.value)
+    handleExport(result.value, hexByteSize.value)
   }
 
   function handleImportFile(fileContent: string) {
@@ -116,11 +116,10 @@ export const useAnalysisStore = defineStore('analysis', () => {
         sendPacket.value = state.sendPacket
         result.value = state.result
         isAnalyzed.value = true
-        displayFormat.value = 'hex'
+        hexByteSize.value = state.hexByteSize
       },
       (hexInputs) => {
         inputs.value = hexInputs
-        displayFormat.value = 'hex'
         doAnalyze()
       },
     )
@@ -166,7 +165,7 @@ export const useAnalysisStore = defineStore('analysis', () => {
   return {
     inputs,
     sendPacket,
-    displayFormat,
+    hexByteSize,
     isLoading,
     result,
     isAnalyzed,
@@ -176,7 +175,7 @@ export const useAnalysisStore = defineStore('analysis', () => {
     showAlertModal,
     doAnalyze,
     handleReset,
-    handleConvertDecimal,
+    handleHexByteSizeChange,
     handleExport: handleExportClick,
     handleImportFile,
     closeValidationModal,

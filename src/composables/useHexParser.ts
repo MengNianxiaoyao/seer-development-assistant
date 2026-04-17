@@ -15,7 +15,6 @@ import {
   SPECIAL_COMMAND_ID,
 } from '@/constants'
 import {
-  cleanHex,
   createBodySegment,
   createHeaderField,
   createParamItem,

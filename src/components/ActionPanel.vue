@@ -1,23 +1,12 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { computed } from 'vue'
 import Button from '@/components/base/Button.vue'
 import FilePicker from '@/components/FilePicker.vue'
-import { useAnalysisStore } from '@/stores/analysis'
 
 const emit = defineEmits<{
   export: []
-  convertDecimal: []
   reset: []
   importFile: [content: string]
 }>()
-
-const store = useAnalysisStore()
-const { displayFormat, result } = storeToRefs(store)
-
-const formatButtonText = computed(() => {
-  return displayFormat.value === 'hex' ? '转10进制' : '转16进制'
-})
 
 function handleFileSelected(file: File) {
   const reader = new FileReader()
@@ -25,15 +14,6 @@ function handleFileSelected(file: File) {
     emit('importFile', reader.result as string)
   }
   reader.readAsText(file)
-}
-
-function handleConvertFormat() {
-  if (!result.value || result.value.packets.length === 0) {
-    store.alertMessage = '请先输入封包后再进行格式转换'
-    store.showAlertModal = true
-    return
-  }
-  emit('convertDecimal')
 }
 </script>
 
@@ -59,25 +39,6 @@ function handleConvertFormat() {
     </div>
 
     <div class="space-y-1.5 -mt-1">
-      <Button type="warning" class="w-full" @click="handleConvertFormat">
-        <span class="flex items-center justify-center gap-1.5">
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-            />
-          </svg>
-          {{ formatButtonText }}
-        </span>
-      </Button>
-
       <Button type="danger" class="w-full" @click="emit('reset')">
         <span class="flex items-center justify-center gap-1.5">
           <svg

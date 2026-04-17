@@ -8,7 +8,7 @@ export function useAnalysis() {
     ...storeToRefs(store),
     doAnalyze: store.doAnalyze,
     handleReset: store.handleReset,
-    handleConvertDecimal: store.handleConvertDecimal,
+    handleHexByteSizeChange: store.handleHexByteSizeChange,
     handleExport: store.handleExport,
     handleImportFile: store.handleImportFile,
     closeValidationModal: store.closeValidationModal,

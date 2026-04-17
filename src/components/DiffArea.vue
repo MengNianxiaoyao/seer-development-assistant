@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { AnalysisResult, DisplayFormat, ParamItem } from '@/types'
+import type { AnalysisResult, HexByteSize, ParamItem } from '@/types'
 import { computed } from 'vue'
 import { usePacketData } from '@/composables/usePacketData'
 import { formatValue, getHighlightClass } from '@/utils'
 
 const props = defineProps<{
   result: AnalysisResult | null
-  format: DisplayFormat
+  hexByteSize: HexByteSize
 }>()
 
 const { diffPackets, diffIndexSet, hasDiffParams } = usePacketData(
@@ -31,7 +31,7 @@ function formatParamValue(
   const param = getParamValue(packet, index)
   if (!param)
     return ''
-  return formatValue(param.hex, param.decimal, param.binary, props.format)
+  return formatValue(param.hex, props.hexByteSize)
 }
 
 function hasParam(packet: { params: ParamItem[] }, index: number): boolean {

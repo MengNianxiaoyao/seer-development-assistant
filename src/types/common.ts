@@ -16,6 +16,6 @@ export interface BodySegment extends HexValue {
   index: number
 }
 
-export type DisplayFormat = 'hex' | 'decimal' | 'binary'
+export type HexByteSize = 1 | 2 | 4 | 8
 
 export type PacketType = 'receive' | 'send'

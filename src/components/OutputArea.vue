@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import type { AnalysisResult, DisplayFormat } from '@/types'
+import type { AnalysisResult, HexByteSize } from '@/types'
 import { computed, shallowRef } from 'vue'
+import RadioGroup from '@/components/base/RadioGroup.vue'
 import { usePacketData } from '@/composables/usePacketData'
 import { copyToClipboard, formatValue, getHighlightClass } from '@/utils'
 
 const props = defineProps<{
   result: AnalysisResult | null
-  format: DisplayFormat
+  hexByteSize: HexByteSize
+}>()
+
+const emit = defineEmits<{
+  'update:hexByteSize': [value: HexByteSize]
 }>()
 
 const copiedIndex = shallowRef<number | null>(null)
@@ -26,12 +31,7 @@ const hasContent = computed(() => {
 const sendPacketParamsWithFormat = computed(() => {
   return sendPacketParams.value.map(param => ({
     ...param,
-    formatted: formatValue(
-      param.hex,
-      param.decimal,
-      param.binary,
-      props.format,
-    ),
+    formatted: formatValue(param.hex, 8),
   }))
 })
 
@@ -40,12 +40,7 @@ const receivePacketsWithFormat = computed(() => {
     ...packet,
     params: packet.params.map(param => ({
       ...param,
-      formatted: formatValue(
-        param.hex,
-        param.decimal,
-        param.binary,
-        props.format,
-      ),
+      formatted: formatValue(param.hex, props.hexByteSize),
     })),
   }))
 })
@@ -95,6 +90,21 @@ async function handleCopy(value: string, index: number) {
         v-if="copiedIndex !== null"
         class="text-[10px] text-green-500 ml-2 animate-fade-in"
       >已复制</span>
+      <div
+        class="ml-auto flex items-center gap-1"
+      >
+        <span class="text-[10px] text-gray-400">十六进制位数：</span>
+        <RadioGroup
+          :model-value="hexByteSize"
+          :options="[
+            { value: 1, label: '1位' },
+            { value: 2, label: '2位' },
+            { value: 4, label: '4位' },
+            { value: 8, label: '8位' },
+          ]"
+          @update:model-value="emit('update:hexByteSize', $event as HexByteSize)"
+        />
+      </div>
     </div>
 
     <div

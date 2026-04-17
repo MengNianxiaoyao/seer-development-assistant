@@ -1,4 +1,4 @@
-import type { AnalysisResult, ExportData, InputEntry, ParsedPacket } from '@/types'
+import type { AnalysisResult, ExportData, HexByteSize, InputEntry, ParsedPacket } from '@/types'
 import { ref } from 'vue'
 import {
   cleanHex,
@@ -18,12 +18,13 @@ function parseHexStrings(hexStrings: string[]): InputEntry[] {
     }))
 }
 
-function buildExportData(result: AnalysisResult): ExportData {
+function buildExportData(result: AnalysisResult, hexByteSize: HexByteSize): ExportData {
   return {
     exportTime: new Date().toISOString(),
     validPackets: result.validPackets,
     totalParams: result.totalParams,
     diffCount: result.diffCount,
+    hexByteSize,
     packets: result.packets,
     diffs: result.diffs,
   }
@@ -33,6 +34,7 @@ function restoreFromExportData(data: ExportData): {
   inputs: InputEntry[]
   sendPacket: string
   result: AnalysisResult
+  hexByteSize: HexByteSize
 } {
   const packets = data.packets
   const len = packets.length
@@ -74,6 +76,7 @@ function restoreFromExportData(data: ExportData): {
       totalParams: data.totalParams,
       validPackets: data.validPackets,
     },
+    hexByteSize: data.hexByteSize ?? 8,
   }
 }
 
@@ -151,6 +154,7 @@ export function useImportExport() {
       inputs: InputEntry[]
       sendPacket: string
       result: AnalysisResult
+      hexByteSize: HexByteSize
     }) => void,
     onHexInputs: (inputs: InputEntry[]) => void,
   ) {
@@ -169,14 +173,14 @@ export function useImportExport() {
     }
   }
 
-  function handleExport(result: AnalysisResult | null): boolean {
+  function handleExport(result: AnalysisResult | null, hexByteSize: HexByteSize): boolean {
     if (!result) {
       alertMessage.value = '请先进行分析'
       showAlertModal.value = true
       return false
     }
 
-    const exportData = buildExportData(result)
+    const exportData = buildExportData(result, hexByteSize)
     downloadJson(exportData, `seer-analysis-${Date.now()}.json`)
     return true
   }

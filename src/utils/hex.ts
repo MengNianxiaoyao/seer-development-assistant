@@ -1,7 +1,7 @@
 import type {
   BodySegment,
-  DisplayFormat,
   HeaderField,
+  HexByteSize,
   ParamItem,
 } from '@/types'
 
@@ -95,20 +95,15 @@ export function createParamItem(index: number, hex: string): ParamItem {
   }
 }
 
-export function formatValue(
-  hex: string,
-  decimal: number,
-  binary: string,
-  fmt: DisplayFormat,
-): string {
-  switch (fmt) {
-    case 'decimal':
-      return String(decimal)
-    case 'binary':
-      return binary
-    default:
-      return hex
+export function formatValue(hex: string, hexByteSize: HexByteSize): string {
+  const maxDigits = hexByteSize === 2 ? 3 : hexByteSize === 4 ? 5 : 0
+  const parts: string[] = []
+  for (let i = 0; i < hex.length; i += hexByteSize) {
+    const part = hex.slice(i, i + hexByteSize)
+    const num = Number.parseInt(part, 16)
+    parts.push(maxDigits ? num.toString().padEnd(maxDigits, '\u00A0') : num.toString())
   }
+  return parts.join('\u00A0')
 }
 
 export function getHighlightClass(
