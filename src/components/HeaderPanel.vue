@@ -1,27 +1,22 @@
 <script setup lang="ts">
 import type { AnalysisResult } from '@/types'
-import { computed } from 'vue'
+import { computed, toRef } from 'vue'
+import { usePacketData } from '@/composables/usePacketData'
 import {
   formatParamCount,
-  separatePackets,
 } from '@/utils'
 
 const props = defineProps<{
   result: AnalysisResult | null
 }>()
 
-const separated = computed(() => {
-  if (!props.result?.packets.length)
-    return { receivePackets: [], sendPacket: undefined }
-  return separatePackets(props.result.packets)
-})
+const { receivePackets, sendPacket } = usePacketData(toRef(props, 'result'))
 
 const headerFields = computed(() => {
   if (!props.result?.packets.length)
     return []
 
   const packets = props.result.packets
-  const sendPacket = separated.value.sendPacket
 
   let maxPacketLength = 0
   for (let i = 0; i < packets.length; i++) {
@@ -40,8 +35,7 @@ const headerFields = computed(() => {
     { name: '米米号', decimal: first.header.mimiId.decimal },
     {
       name: '序列号',
-      decimal:
-        sendPacket?.header.sequence.decimal ?? last.header.sequence.decimal,
+      decimal: sendPacket.value?.header.sequence.decimal ?? last.header.sequence.decimal,
     },
   ]
 })
@@ -49,7 +43,7 @@ const headerFields = computed(() => {
 const paramCountText = computed(() => {
   if (!props.result)
     return '0'
-  return formatParamCount(separated.value.receivePackets)
+  return formatParamCount(receivePackets.value)
 })
 
 const diffIndices = computed(() => {

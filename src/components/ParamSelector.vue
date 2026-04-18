@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import Button from '@/components/base/Button.vue'
 import Checkbox from '@/components/base/Checkbox.vue'
 
@@ -47,6 +47,13 @@ function toggleParam(index: number) {
   }
   emit('toggle', index)
 }
+
+onUnmounted(() => {
+  if (hintTimer) {
+    clearTimeout(hintTimer)
+    hintTimer = null
+  }
+})
 </script>
 
 <template>

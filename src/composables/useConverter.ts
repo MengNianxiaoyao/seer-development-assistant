@@ -1,30 +1,32 @@
 import type { ParsedParam } from '@/types'
 import { computed, ref, watch } from 'vue'
+import { HEADER_LENGTH } from '@/constants'
 import { useSettingsStore } from '@/stores/settings'
 import { cleanHex, decimalToHex, hexToDecimal } from '@/utils'
 
 function parseHexToParams(hex: string) {
   const cleaned = cleanHex(hex)
-  if (cleaned.length < 34) {
+  if (cleaned.length < HEADER_LENGTH) {
     return {
       commandId: '',
       params: [],
-      error: `封包头不完整：需要34位，当前${cleaned.length}位`,
+      error: `封包头不完整：需要${HEADER_LENGTH}位，当前${cleaned.length}位`,
     }
   }
 
   const cmdId = cleaned.substring(10, 18)
-  const paramsHex = cleaned.substring(34)
+  const paramsHex = cleaned.substring(HEADER_LENGTH)
   const params: ParsedParam[] = []
 
-  for (let i = 0; i < paramsHex.length; i += 8) {
-    if (paramsHex.substring(i, i + 8).length === 8) {
-      params.push({
-        index: params.length + 1,
-        value: String(hexToDecimal(paramsHex.substring(i, i + 8))),
-        selected: true,
-      })
-    }
+  const remainder = paramsHex.length % 8
+
+  const fullLength = paramsHex.length - remainder
+  for (let i = 0; i < fullLength; i += 8) {
+    params.push({
+      index: params.length + 1,
+      value: String(hexToDecimal(paramsHex.substring(i, i + 8))),
+      selected: true,
+    })
   }
 
   return {
@@ -35,7 +37,7 @@ function parseHexToParams(hex: string) {
 }
 
 function buildPacketHex(commandId: number, params: number[]) {
-  const packetLength = 17 + params.length * 4
+  const packetLength = (HEADER_LENGTH / 2) + (params.length * 4)
   return (
     `${decimalToHex(packetLength, 8)}00${decimalToHex(commandId, 8)}00000000`
     + `00000000${params.map(p => decimalToHex(p, 8)).join('')}`

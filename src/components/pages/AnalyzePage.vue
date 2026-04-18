@@ -122,7 +122,7 @@ watch(
       >
         <div class="w-[80%] flex flex-col gap-3 min-w-0 h-full">
           <div class="h-[50%] overflow-hidden">
-<OutputArea :result="result" :hex-byte-size="hexByteSize" @update:hex-byte-size="handleHexByteSizeChange" />
+            <OutputArea :result="result" :hex-byte-size="hexByteSize" @update:hex-byte-size="handleHexByteSizeChange" />
           </div>
           <div class="h-[50%] overflow-hidden">
             <DiffArea :result="result" :hex-byte-size="hexByteSize" />
