@@ -1,8 +1,10 @@
-import type { AnalysisResult, ExportData, HexByteSize, InputEntry, ParsedPacket } from '@/types'
+import type { AnalysisResult, ExportData, HexByteSize, InputEntry } from '@/types'
+import type { ImportFormat } from '@/types/analysis'
 import { ref } from 'vue'
 import {
   cleanHex,
   downloadJson,
+  separatePackets,
 } from '@/utils'
 
 function parseHexStrings(hexStrings: string[]): InputEntry[] {
@@ -18,38 +20,13 @@ function parseHexStrings(hexStrings: string[]): InputEntry[] {
     }))
 }
 
-function buildExportData(result: AnalysisResult, hexByteSize: HexByteSize): ExportData {
-  return {
-    exportTime: new Date().toISOString(),
-    validPackets: result.validPackets,
-    totalParams: result.totalParams,
-    diffCount: result.diffCount,
-    hexByteSize,
-    packets: result.packets,
-    diffs: result.diffs,
-  }
-}
-
 function restoreFromExportData(data: ExportData): {
   inputs: InputEntry[]
   sendPacket: string
   result: AnalysisResult
   hexByteSize: HexByteSize
 } {
-  const packets = data.packets
-  const len = packets.length
-  let sendPacketData: ParsedPacket | undefined
-  const receivePackets: ParsedPacket[] = []
-
-  for (let i = 0; i < len; i++) {
-    const packet = packets[i]
-    if (packet.type === 'send') {
-      sendPacketData = packet
-    }
-    else {
-      receivePackets.push(packet)
-    }
-  }
+  const { receivePackets, sendPacket: sendPacketData } = separatePackets(data.packets)
 
   const inputs: InputEntry[]
     = receivePackets.length > 0
@@ -85,65 +62,70 @@ interface ImportedData {
   diffs?: Array<unknown>
 }
 
-export type ImportFormat = 'analysis' | 'hex' | 'unknown'
+function parseJsonAnalysis(json: Record<string, unknown>): ImportedData | null {
+  if (json.packets && Array.isArray(json.packets))
+    return json as ImportedData
+  return null
+}
+
+function parseJsonHexArray(json: unknown[]): string[] | null {
+  const hexStrings: string[] = []
+  for (const item of json) {
+    if (typeof item === 'string') {
+      hexStrings.push(item)
+    }
+    else if (typeof item === 'object' && item !== null) {
+      const obj = item as Record<string, unknown>
+      if (obj.hex)
+        hexStrings.push(String(obj.hex))
+      else if (obj.data)
+        hexStrings.push(String(obj.data))
+      else if (obj.value)
+        hexStrings.push(String(obj.value))
+      else if (obj.raw)
+        hexStrings.push(String(obj.raw))
+      else return null
+    }
+    else {
+      return null
+    }
+  }
+  return hexStrings.length > 0 ? hexStrings : null
+}
+
+function parsePlainTextHex(content: string): string[] | null {
+  const lines = content.split(/[\r\n]+/).map(l => l.trim()).filter(l => l.length > 0)
+  if (lines.length > 0 && lines.every(l => /^[0-9a-f\s]+$/i.test(l)))
+    return lines.map(l => l.replace(/\s/g, ''))
+  return null
+}
 
 export function useImportExport() {
   const alertMessage = ref('')
   const showAlertModal = ref(false)
 
-  function parseImportedFile(content: string): {
-    format: ImportFormat
-    data: ImportedData | string[]
-  } {
+  function parseImportedFile(content: string): { format: ImportFormat, data: ImportedData | string[] } {
     try {
       const json = JSON.parse(content)
+      const analysisResult = parseJsonAnalysis(json)
+      if (analysisResult)
+        return { format: 'analysis', data: analysisResult }
 
-      // Exported analysis result format
-      if (json.packets && Array.isArray(json.packets)) {
-        return { format: 'analysis', data: json as ImportedData }
-      }
-
-      // Array of hex strings or objects
       if (Array.isArray(json)) {
-        const hexStrings: string[] = []
-        for (const item of json) {
-          if (typeof item === 'string') {
-            hexStrings.push(item)
-          }
-          else if (item.hex) {
-            hexStrings.push(item.hex)
-          }
-          else if (item.data) {
-            hexStrings.push(item.data)
-          }
-          else if (item.value) {
-            hexStrings.push(item.value)
-          }
-          else if (item.raw) {
-            hexStrings.push(item.raw)
-          }
-        }
-        if (hexStrings.length > 0) {
-          return { format: 'hex', data: hexStrings }
-        }
+        const hexResult = parseJsonHexArray(json)
+        if (hexResult)
+          return { format: 'hex', data: hexResult }
       }
 
-      // Single hex string
-      if (typeof json === 'string') {
+      if (typeof json === 'string')
         return { format: 'hex', data: [json] }
-      }
 
       return { format: 'unknown', data: [] }
     }
     catch {
-      // Not JSON, try as plain text with multiple hex strings
-      const lines = content
-        .split(/[\r\n]+/)
-        .map(line => line.trim())
-        .filter(line => line.length > 0)
-      if (lines.length > 0 && lines.every(line => /^[0-9a-f\s]+$/i.test(line))) {
-        return { format: 'hex', data: lines.map(line => line.replace(/\s/g, '')) }
-      }
+      const hexResult = parsePlainTextHex(content)
+      if (hexResult)
+        return { format: 'hex', data: hexResult }
       return { format: 'unknown', data: [] }
     }
   }
@@ -180,7 +162,15 @@ export function useImportExport() {
       return false
     }
 
-    const exportData = buildExportData(result, hexByteSize)
+    const exportData: ExportData = {
+      exportTime: new Date().toISOString(),
+      validPackets: result.validPackets,
+      totalParams: result.totalParams,
+      diffCount: result.diffCount,
+      hexByteSize,
+      packets: result.packets,
+      diffs: result.diffs,
+    }
     downloadJson(exportData, `seer-analysis-${Date.now()}.json`)
     return true
   }
@@ -197,6 +187,5 @@ export function useImportExport() {
     handleExport,
     closeAlertModal,
     parseImportedFile,
-    buildExportData,
   }
 }

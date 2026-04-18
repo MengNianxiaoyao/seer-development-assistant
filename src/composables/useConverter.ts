@@ -1,8 +1,13 @@
-import type { ParsedParam } from '@/types'
 import { computed, ref, watch } from 'vue'
 import { HEADER_LENGTH } from '@/constants'
 import { useSettingsStore } from '@/stores/settings'
 import { cleanHex, decimalToHex, hexToDecimal } from '@/utils'
+
+interface ParsedParam {
+  index: number
+  value: string
+  selected: boolean
+}
 
 function parseHexToParams(hex: string) {
   const cleaned = cleanHex(hex)
@@ -157,13 +162,10 @@ export function useConverter() {
       if (!p)
         return
 
-      if (isSpecialCommand.value) {
-        if (idx === 1 || (p.selected && filteredParams.value.length <= 1))
-          return
-      }
-      else if (p.selected && filteredParams.value.length <= 1) {
+      if (isSpecialCommand.value && (idx === 1 || (p.selected && filteredParams.value.length <= 1)))
         return
-      }
+      if (!isSpecialCommand.value && p.selected && filteredParams.value.length <= 1)
+        return
 
       p.selected = !p.selected
     },

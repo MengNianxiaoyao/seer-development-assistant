@@ -1,17 +1,16 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import { computed, watch } from 'vue'
 import ActionPanel from '@/components/ActionPanel.vue'
-import AlertModal from '@/components/base/AlertModal.vue'
-import ValidationErrorModal from '@/components/base/ValidationErrorModal.vue'
+import MessageModal from '@/components/base/MessageModal.vue'
 import BinaryDisplay from '@/components/BinaryDisplay.vue'
 import DiffArea from '@/components/DiffArea.vue'
 import HeaderPanel from '@/components/HeaderPanel.vue'
 import HexInput from '@/components/HexInput.vue'
 import PageLayout from '@/components/layout/PageLayout.vue'
 import OutputArea from '@/components/OutputArea.vue'
-import { useAnalysis } from '@/composables/useAnalysis'
-
-import { formatParamCount, getReceivePackets } from '@/utils'
+import { useAnalysisStore } from '@/stores/analysis'
+import { formatParamCount, separatePackets } from '@/utils'
 
 const emit = defineEmits<{
   statusChange: [
@@ -25,6 +24,7 @@ const emit = defineEmits<{
   ]
 }>()
 
+const store = useAnalysisStore()
 const {
   hexByteSize,
   isLoading,
@@ -34,18 +34,12 @@ const {
   showValidationModal,
   alertMessage,
   showAlertModal,
-  handleReset,
-  handleHexByteSizeChange,
-  handleExport,
-  handleImportFile,
-  closeValidationModal,
-  closeAlertModal,
-} = useAnalysis()
+} = storeToRefs(store)
 
 const paramCountText = computed(() => {
   if (!result.value)
     return '0'
-  const receivePackets = getReceivePackets(result.value.packets)
+  const { receivePackets } = separatePackets(result.value.packets)
   return formatParamCount(receivePackets)
 })
 
@@ -73,9 +67,9 @@ watch(
       </div>
       <div class="flex-shrink-0">
         <ActionPanel
-          @import-file="handleImportFile"
-          @export="handleExport"
-          @reset="handleReset"
+          @import-file="store.handleImportFile"
+          @export="store.handleExport"
+          @reset="store.handleReset"
         />
       </div>
       <div class="flex-shrink-0" style="height: 150px">
@@ -86,7 +80,7 @@ watch(
       </div>
       <div class="flex flex-col gap-2 flex-1 min-h-0">
         <div class="flex-1 min-h-[120px] overflow-hidden">
-          <OutputArea :result="result" :hex-byte-size="hexByteSize" @update:hex-byte-size="handleHexByteSizeChange" />
+          <OutputArea :result="result" :hex-byte-size="hexByteSize" @update:hex-byte-size="store.handleHexByteSizeChange" />
         </div>
         <div class="flex-1 min-h-[120px] overflow-hidden">
           <DiffArea :result="result" :hex-byte-size="hexByteSize" />
@@ -102,9 +96,9 @@ watch(
         </div>
         <div class="w-[10%] min-w-0">
           <ActionPanel
-            @import-file="handleImportFile"
-            @export="handleExport"
-            @reset="handleReset"
+            @import-file="store.handleImportFile"
+            @export="store.handleExport"
+            @reset="store.handleReset"
           />
         </div>
         <div class="w-[45%] min-w-0">
@@ -122,7 +116,7 @@ watch(
       >
         <div class="w-[80%] flex flex-col gap-3 min-w-0 h-full">
           <div class="h-[50%] overflow-hidden">
-            <OutputArea :result="result" :hex-byte-size="hexByteSize" @update:hex-byte-size="handleHexByteSizeChange" />
+            <OutputArea :result="result" :hex-byte-size="hexByteSize" @update:hex-byte-size="store.handleHexByteSizeChange" />
           </div>
           <div class="h-[50%] overflow-hidden">
             <DiffArea :result="result" :hex-byte-size="hexByteSize" />
@@ -135,15 +129,17 @@ watch(
     </div>
   </PageLayout>
 
-  <ValidationErrorModal
+  <MessageModal
     v-if="showValidationModal"
+    title="校验不通过"
     :errors="validationErrors"
-    @close="closeValidationModal"
+    type="error"
+    @close="store.closeValidationModal"
   />
 
-  <AlertModal
+  <MessageModal
     v-if="showAlertModal"
     :message="alertMessage"
-    @close="closeAlertModal"
+    @close="store.closeAlertModal"
   />
 </template>

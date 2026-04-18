@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import type { AnalysisResult, ParsedPacket } from '@/types'
+import type { AnalysisResult } from '@/types'
 import { computed } from 'vue'
 import {
   createDiffIndexSet,
@@ -30,24 +30,11 @@ export function usePacketData(result: Ref<AnalysisResult | null>) {
     return createDiffIndexSet(diffs)
   })
 
-  const diffPackets = computed(() => {
-    const packets = receivePackets.value
-    const indices = diffIndexSet.value
-    if (indices.size === 0)
-      return []
-
-    const result: ParsedPacket[] = []
-    for (let i = 0; i < packets.length; i++) {
-      const params = packets[i].params
-      for (let j = 0; j < params.length; j++) {
-        if (indices.has(params[j].index)) {
-          result.push(packets[i])
-          break
-        }
-      }
-    }
-    return result
-  })
+  const diffPackets = computed(() =>
+    receivePackets.value.filter(packet =>
+      packet.params.some(param => diffIndexSet.value.has(param.index)),
+    ),
+  )
 
   const hasDiffParams = computed(() => diffPackets.value.length > 0)
 

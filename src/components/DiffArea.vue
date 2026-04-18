@@ -17,25 +17,18 @@ const diffIndices = computed(() => {
   return [...diffIndexSet.value].sort((a, b) => a - b)
 })
 
-function getParamValue(
-  packet: { params: { index: number, hex: string }[] },
-  index: number,
-): { hex: string } | undefined {
-  return packet.params.find(p => p.index === index)
-}
-
 function formatParamValue(
   packet: { params: { index: number, hex: string }[], header: { commandId: { decimal: number } } },
   index: number,
 ): string {
-  const param = getParamValue(packet, index)
+  const param = packet.params.find(p => p.index === index)
   if (!param)
     return ''
   return formatValue(param.hex, props.hexByteSize, packet.header.commandId.decimal)
 }
 
 function hasParam(packet: { params: { index: number, hex: string }[] }, index: number): boolean {
-  return getParamValue(packet, index) !== undefined
+  return packet.params.some(p => p.index === index)
 }
 </script>
 

@@ -1,50 +1,28 @@
 import type { DiffResult, ParsedPacket } from '@/types'
 
 export function findDifferences(packets: ParsedPacket[]): DiffResult[] {
-  const packetCount = packets.length
-  if (packetCount < 2)
+  if (packets.length < 2)
     return []
 
-  let maxLen = 0
-  for (let i = 0; i < packetCount; i++) {
-    const len = packets[i].params.length
-    if (len > maxLen)
-      maxLen = len
-  }
-
+  const maxLen = Math.max(...packets.map(p => p.params.length))
   if (maxLen === 0)
     return []
 
   const diffs: DiffResult[] = []
 
   for (let i = 0; i < maxLen; i++) {
-    let hasAny = false
-    let allExist = true
-    let firstValue: string | undefined
-    let valuesMatch = true
-    let refParam: typeof packets[0]['params'][0] | undefined
+    const values = packets.map(p => p.params[i]?.hex)
+    const definedValues = values.filter(Boolean) as string[]
 
-    for (let j = 0; j < packetCount; j++) {
-      const param = packets[j].params[i]
-      if (param) {
-        if (!hasAny) {
-          hasAny = true
-          refParam = param
-          firstValue = param.hex
-        }
-        else if (param.hex !== firstValue) {
-          valuesMatch = false
-        }
-      }
-      else {
-        allExist = false
-      }
-    }
-
-    if (!hasAny)
+    if (definedValues.length === 0)
       continue
 
-    if (!allExist || !valuesMatch) {
+    const firstValue = definedValues[0]
+    const allMatch = definedValues.every(v => v === firstValue)
+    const allExist = definedValues.length === packets.length
+
+    if (!allMatch || !allExist) {
+      const refParam = packets[0].params[i]
       if (refParam) {
         diffs.push({
           index: i + 1,
@@ -60,11 +38,7 @@ export function findDifferences(packets: ParsedPacket[]): DiffResult[] {
 }
 
 export function createDiffIndexSet(diffs: DiffResult[]): Set<number> {
-  const set = new Set<number>()
-  for (let i = 0; i < diffs.length; i++) {
-    set.add(diffs[i].index)
-  }
-  return set
+  return new Set(diffs.map(d => d.index))
 }
 
 export function diffIndexSetFromPackets(packets: ParsedPacket[]): Set<number> {
