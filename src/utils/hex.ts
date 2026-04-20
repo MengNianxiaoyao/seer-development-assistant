@@ -96,7 +96,7 @@ export function createParamItem(index: number, hex: string): ParamItem {
   }
 }
 
-const MAX_DIGITS: Record<number, number> = { 2: 3, 4: 5 }
+const MAX_DIGITS: Record<number, number> = { 1: 2, 2: 3, 4: 5 }
 
 export function formatValue(hex: string, hexByteSize: HexByteSize, commandId?: number): string {
   if (commandId === SPECIAL_COMMAND_ID)
@@ -121,4 +121,14 @@ export function getHighlightClass(
   return packetIdx % 2 === 0
     ? 'bg-red-100 text-red-600'
     : 'bg-blue-100 text-blue-600'
+}
+
+export function getPlaceholder(hexByteSize: HexByteSize): string {
+  const maxDigits = MAX_DIGITS[hexByteSize] ?? 0
+  if (maxDigits === 0) {
+    return '--'
+  }
+  const partCount = 8 / hexByteSize
+  const placeholder = maxDigits > 0 ? '--'.padEnd(maxDigits, '\u00A0') : '--'
+  return Array.from({ length: partCount }, () => placeholder).join('\u00A0')
 }

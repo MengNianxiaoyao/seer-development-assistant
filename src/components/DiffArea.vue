@@ -2,7 +2,7 @@
 import type { AnalysisResult, HexByteSize } from '@/types'
 import { computed } from 'vue'
 import { usePacketData } from '@/composables/usePacketData'
-import { formatValue, getHighlightClass } from '@/utils'
+import { formatValue, getHighlightClass, getPlaceholder } from '@/utils'
 
 const props = defineProps<{
   result: AnalysisResult | null
@@ -94,7 +94,7 @@ function hasParam(packet: { params: { index: number, hex: string }[] }, index: n
               <span v-if="hasParam(packet, idx)">{{
                 formatParamValue(packet, idx)
               }}</span>
-              <span v-else class="text-gray-400 italic">--</span>
+              <span v-else class="text-gray-400 italic text-center w-full block">{{ getPlaceholder(props.hexByteSize) }}</span>
             </div>
           </div>
         </div>

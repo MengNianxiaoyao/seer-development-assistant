@@ -22,8 +22,9 @@ export function findDifferences(packets: ParsedPacket[]): DiffResult[] {
     const allExist = definedValues.length === packets.length
 
     if (!allMatch || !allExist) {
-      const refParam = packets[0].params[i]
-      if (refParam) {
+      const refPacket = packets.find(p => p.params[i])
+      if (refPacket) {
+        const refParam = refPacket.params[i]
         diffs.push({
           index: i + 1,
           hex: refParam.hex,
