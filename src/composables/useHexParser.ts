@@ -23,10 +23,22 @@ import {
   parseRawToHex,
 } from '@/utils'
 
+/**
+ * 十六进制数据包解析 composable
+ * 提供数据包解析、验证和分析功能
+ */
 export function useHexParser() {
+  /** 解析结果 */
   const result = ref<AnalysisResult | null>(null)
+  /** 是否已完成分析 */
   const isAnalyzed = ref(false)
 
+  /**
+   * 解析数据包头部
+   * 从十六进制字符串中提取头部字段信息
+   * @param hex - 完整的十六进制字符串
+   * @returns 解析后的头部信息和偏移量
+   */
   function parseHeader(hex: string): { header: PacketHeader, offset: number } {
     let offset = 0
     const fields: HeaderField[] = []
@@ -57,6 +69,12 @@ export function useHexParser() {
     }
   }
 
+  /**
+   * 将消息体分割成指定大小的片段
+   * @param bodyHex - 消息体十六进制字符串
+   * @param chunkSize - 每个片段的字节大小
+   * @returns 片段数组
+   */
   function splitIntoSegments(
     bodyHex: string,
     chunkSize: number,
@@ -73,6 +91,14 @@ export function useHexParser() {
     return segments
   }
 
+  /**
+   * 解析消息体参数
+   * 根据命令ID和封包类型采用不同的解析策略
+   * @param commandIdDec - 命令ID（十进制）
+   * @param isSendPacket - 是否为发送包
+   * @param bodyHex - 消息体十六进制字符串
+   * @returns 参数列表
+   */
   function parseParams(
     commandIdDec: number,
     isSendPacket: boolean,
@@ -96,6 +122,13 @@ export function useHexParser() {
     return seg4.map((s, idx) => createParamItem(idx + 1, s.hex))
   }
 
+  /**
+   * 解析单个数据包
+   * @param id - 数据包唯一标识
+   * @param rawHex - 原始十六进制输入
+   * @param label - 数据包标签
+   * @returns 解析后的数据包对象
+   */
   function parseSinglePacket(
     id: number,
     rawHex: string,
@@ -135,6 +168,12 @@ export function useHexParser() {
     }
   }
 
+  /**
+   * 验证输入数据的有效性
+   * 检查命令号是否一致等
+   * @param inputs - 输入数组
+   * @returns 验证错误列表
+   */
   function validate(
     inputs: { raw: string, enabled: boolean, label: string, order?: number }[],
   ): ValidationError[] {
@@ -194,6 +233,12 @@ export function useHexParser() {
     return errors
   }
 
+  /**
+   * 分析多个数据包
+   * 解析所有数据包并计算差异
+   * @param inputs - 输入数组
+   * @returns 分析结果
+   */
   function analyze(
     inputs: { raw: string, enabled: boolean, label: string }[],
   ): AnalysisResult {
@@ -227,6 +272,9 @@ export function useHexParser() {
     return res
   }
 
+  /**
+   * 重置解析器状态
+   */
   function reset() {
     result.value = null
     isAnalyzed.value = false

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useEscapeKey } from '@/composables/useKeyboard'
-
 defineProps<{
   title?: string
   icon?: 'info' | 'warning' | 'error'
@@ -10,8 +8,6 @@ defineProps<{
 const emit = defineEmits<{
   close: []
 }>()
-
-useEscapeKey(() => emit('close'))
 </script>
 
 <template>
