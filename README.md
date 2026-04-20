@@ -91,8 +91,6 @@ src/
 │   │   ├── Input.vue              # 输入框组件
 │   │   ├── RadioGroup.vue         # 单选组
 │   │   ├── BaseModal.vue          # 基础模态框
-│   │   ├── AlertModal.vue         # 警告模态框
-│   │   ├── ValidationErrorModal.vue # 验证错误模态框
 │   │   └── MessageModal.vue       # 消息模态框
 │   ├── layout/                    # 布局组件
 │   │   └── PageLayout.vue         # 页面布局
@@ -110,12 +108,11 @@ src/
 │   ├── ConvertResult.vue          # 转换结果
 │   └── FilePicker.vue             # 文件选择器
 ├── composables/                   # 组合式函数
-│   ├── useAnalysis.ts             # 分析逻辑
-│   ├── useConverter.ts            # 转换逻辑
 │   ├── useHexParser.ts            # 十六进制解析
+│   ├── useConverter.ts            # 转换逻辑
 │   ├── usePacketData.ts           # 数据处理
-│   ├── useKeyboard.ts             # 快捷键处理
-│   └── useImportExport.ts         # 导入导出
+│   ├── useImportExport.ts         # 导入导出
+│   └── useFileDrop.ts             # 文件拖放
 ├── stores/                        # Pinia 状态管理
 │   ├── analysis.ts                # 分析状态
 │   └── settings.ts                # 设置状态
@@ -129,11 +126,13 @@ src/
 │   ├── common.ts                  # 通用类型
 │   ├── packet.ts                  # 封包类型
 │   ├── analysis.ts                # 分析类型
-│   ├── converter.ts               # 转换类型
 │   └── index.ts                   # 统一导出
-└── constants/                     # 常量定义
-    ├── packet.ts                  # 封包常量
-    ├── settings.ts                # 设置常量
-    ├── analysis.ts                # 分析常量
-    └── index.ts                   # 统一导出
+├── constants/                     # 常量定义
+│   ├── packet.ts                  # 封包常量
+│   ├── settings.ts                # 设置常量
+│   ├── analysis.ts                # 分析常量
+│   └── index.ts                   # 统一导出
+├── App.vue                        # 根组件
+├── main.ts                        # 入口文件
+└── style.css                      # 全局样式
 ```
