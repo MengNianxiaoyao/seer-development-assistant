@@ -65,6 +65,38 @@ export function useConverter() {
   const hexToFormatInput = ref('')
   const formatToHexInput = ref('')
   const parsedParams = ref<ParsedParam[]>([])
+  const parsedParamsFromHex = ref<ParsedParam[]>([])
+  const parsedCommandIdFromHex = ref<string>('')
+
+  const selectedParamsFromInput = ref<ParsedParam[]>([])
+
+  watch(
+    formatToHexInput,
+    (val: string) => {
+      const parsed = parseFormatToParams(val.trim())
+      if (parsed) {
+        parsedCommandIdFromHex.value = String(parsed.commandId)
+        const params: ParsedParam[] = parsed.params.map((p, idx) => ({
+          index: idx + 1,
+          value: String(p),
+          selected: true,
+        }))
+        parsedParamsFromHex.value = params
+      }
+      else {
+        parsedCommandIdFromHex.value = ''
+        parsedParamsFromHex.value = []
+      }
+    },
+    { immediate: true },
+  )
+
+  const isSpecialCommandFromHex = computed(() => {
+    if (parsedParamsFromHex.value.length <= 1)
+      return false
+    const id = Number(parsedCommandIdFromHex.value)
+    return settingsStore.isSpecialCommand(id)
+  })
 
   const hexResult = computed(() =>
     hexToFormatInput.value.trim()
@@ -92,30 +124,29 @@ export function useConverter() {
     { immediate: true },
   )
 
-  const filteredParams = computed(() => {
+  const selectedParams = ref<ParsedParam[]>([])
+
+  const leftFilteredParams = computed(() => {
     if (isSpecialCommand.value) {
-      return parsedParams.value.filter(p => p.selected && p.index > 1)
+      return selectedParams.value.filter(p => p.selected && p.index > 1)
     }
-    return parsedParams.value.filter(p => p.selected)
+    return selectedParams.value.filter(p => p.selected)
   })
 
   const hexToFormatOutput = computed(() => {
     if (!commandId.value)
       return ''
-    const count = filteredParams.value.length
-    const params = filteredParams.value.map(p => p.value).join(',')
+    const params = leftFilteredParams.value
+    const count = params.length
+    const paramValues = params.map((p: ParsedParam) => p.value).join(',')
     if (isSpecialCommand.value) {
-      return `{${commandId.value},${count},${params}}`
+      return `{${commandId.value},${count},${paramValues}}`
     }
-    return params ? `{${commandId.value},${params}}` : `{${commandId.value}}`
+    return paramValues ? `{${commandId.value},${paramValues}}` : `{${commandId.value}}`
   })
 
-  const formatToHexOutput = computed(() => {
-    const parsed = parseFormatToParams(formatToHexInput.value)
-    if (!parsed)
-      return ''
-    return buildPacketHex(parsed.commandId, parsed.params)
-  })
+  const hasPacketTextInput = computed(() => !!commandId.value)
+  const hasFormatInput = computed(() => formatToHexInput.value.trim().length > 0)
 
   const formatToHexError = computed(() => {
     if (!formatToHexInput.value.trim())
@@ -128,53 +159,180 @@ export function useConverter() {
     return parsed.params.length === 0 ? '当前封包无参数，仅有封包头' : ''
   })
 
+  const leftRebuiltPacketText = computed(() => {
+    if (!hexToFormatOutput.value)
+      return ''
+    const parsed = parseFormatToParams(hexToFormatOutput.value)
+    if (!parsed)
+      return ''
+    return buildPacketHex(parsed.commandId, parsed.params)
+  })
+
+  watch(
+    parsedParams,
+    (params) => {
+      selectedParams.value = params.map(p => ({ ...p }))
+    },
+    { immediate: true },
+  )
+
+  watch(
+    parsedParamsFromHex,
+    (params) => {
+      selectedParamsFromInput.value = params.map(p => ({ ...p }))
+    },
+    { immediate: true },
+  )
+
+  const rightFilteredParams = computed(() => {
+    if (isSpecialCommandFromHex.value) {
+      return selectedParamsFromInput.value.filter(p => p.selected && p.index > 1)
+    }
+    return selectedParamsFromInput.value.filter(p => p.selected)
+  })
+
+  const rightFormatOutput = computed(() => {
+    if (!formatToHexInput.value.trim())
+      return ''
+    const parsed = parseFormatToParams(formatToHexInput.value.trim())
+    if (!parsed)
+      return ''
+    const params = rightFilteredParams.value
+    const count = params.length
+    const paramValues = params.map((p: ParsedParam) => p.value).join(',')
+    if (isSpecialCommandFromHex.value) {
+      return `{${parsedCommandIdFromHex.value},${count},${paramValues}}`
+    }
+    return paramValues ? `{${parsedCommandIdFromHex.value},${paramValues}}` : `{${parsedCommandIdFromHex.value}}`
+  })
+
+  const rightRebuiltPacketText = computed(() => {
+    if (!rightFormatOutput.value)
+      return ''
+    const parsed = parseFormatToParams(rightFormatOutput.value)
+    if (!parsed)
+      return ''
+    return buildPacketHex(parsed.commandId, parsed.params)
+  })
+
   function handleHexToFormatReset() {
     hexToFormatInput.value = ''
     parsedParams.value = []
+    selectedParams.value = []
+  }
+
+  function handleFormatToHexReset() {
+    formatToHexInput.value = ''
+    parsedCommandIdFromHex.value = ''
+    parsedParamsFromHex.value = []
+    selectedParamsFromInput.value = []
+  }
+
+  function selectAllLeftParams() {
+    selectedParams.value.forEach(p => (p.selected = true))
+    selectedParams.value = [...selectedParams.value]
+  }
+
+  function deselectAllLeftParams() {
+    if (isSpecialCommand.value) {
+      selectedParams.value.forEach((p) => {
+        if (p.index === 1)
+          p.selected = true
+        else
+          p.selected = false
+      })
+    }
+    else {
+      selectedParams.value.forEach(p => (p.selected = false))
+    }
+    selectedParams.value = [...selectedParams.value]
+  }
+
+  function toggleLeftParam(idx: number) {
+    const p = selectedParams.value.find(p => p.index === idx)
+    if (!p)
+      return
+
+    const currentSelected = selectedParams.value.filter(p => p.selected)
+    const isSpecial = isSpecialCommand.value
+
+    if (isSpecial && idx === 1)
+      return
+    if (isSpecial && p.selected && currentSelected.length <= 1)
+      return
+    if (!isSpecial && (p.selected && currentSelected.length <= 1))
+      return
+
+    p.selected = !p.selected
+
+    selectedParams.value = [...selectedParams.value]
+  }
+
+  function selectAllRightParams() {
+    selectedParamsFromInput.value.forEach(p => (p.selected = true))
+    selectedParamsFromInput.value = [...selectedParamsFromInput.value]
+  }
+
+  function deselectAllRightParams() {
+    if (isSpecialCommandFromHex.value) {
+      selectedParamsFromInput.value.forEach((p) => {
+        if (p.index === 1)
+          p.selected = true
+        else
+          p.selected = false
+      })
+    }
+    else {
+      selectedParamsFromInput.value.forEach(p => (p.selected = false))
+    }
+    selectedParamsFromInput.value = [...selectedParamsFromInput.value]
+  }
+
+  function toggleRightParam(idx: number) {
+    const p = selectedParamsFromInput.value.find(p => p.index === idx)
+    if (!p)
+      return
+
+    const currentSelected = selectedParamsFromInput.value.filter(p => p.selected)
+    const isSpecial = isSpecialCommandFromHex.value
+
+    if (isSpecial && idx === 1)
+      return
+    if (isSpecial && p.selected && currentSelected.length <= 1)
+      return
+    if (!isSpecial && (p.selected && currentSelected.length <= 1))
+      return
+
+    p.selected = !p.selected
+
+    selectedParamsFromInput.value = [...selectedParamsFromInput.value]
   }
 
   return {
     hexToFormatInput,
-    parsedParams,
-    commandId,
-    filteredParams,
+    selectedParams,
+    filteredParams: leftFilteredParams,
     isSpecialCommand,
     hexToFormatOutput,
     hexToFormatError,
-    hasHexToFormatResult: computed(() => !!commandId.value),
+    hasPacketTextInput,
+    leftRebuiltPacketText,
     handleHexToFormatReset,
-    selectAll: () => parsedParams.value.forEach(p => (p.selected = true)),
-    deselectAll: () => {
-      if (isSpecialCommand.value) {
-        parsedParams.value.forEach((p) => {
-          if (p.index === 1)
-            p.selected = true
-          else
-            p.selected = false
-        })
-      }
-      else {
-        parsedParams.value.forEach(p => (p.selected = false))
-      }
-    },
-    toggleParam: (idx: number) => {
-      const p = parsedParams.value.find(p => p.index === idx)
-      if (!p)
-        return
+    selectAllLeftParams,
+    deselectAllLeftParams,
+    toggleLeftParam,
 
-      if (isSpecialCommand.value && (idx === 1 || (p.selected && filteredParams.value.length <= 1)))
-        return
-      if (!isSpecialCommand.value && p.selected && filteredParams.value.length <= 1)
-        return
-
-      p.selected = !p.selected
-    },
     formatToHexInput,
-    formatToHexOutput,
+    selectedParamsFromInput,
+    isSpecialCommandFromHex,
+    filteredParamsFromInput: rightFilteredParams,
     formatToHexError,
-    hasFormatToHexResult: computed(
-      () => formatToHexInput.value.trim().length > 0,
-    ),
-    handleFormatToHexReset: () => (formatToHexInput.value = ''),
+    hasFormatInput,
+    rightFormatOutput,
+    rightRebuiltPacketText,
+    handleFormatToHexReset,
+    selectAllRightParams,
+    deselectAllRightParams,
+    toggleRightParam,
   }
 }

@@ -11,21 +11,30 @@ const settingsStore = useSettingsStore()
 
 const {
   hexToFormatInput,
-  parsedParams,
+  selectedParams,
   filteredParams,
   isSpecialCommand,
   hexToFormatOutput,
   hexToFormatError,
-  hasHexToFormatResult,
+  hasPacketTextInput,
+  leftRebuiltPacketText,
   handleHexToFormatReset,
-  selectAll,
-  deselectAll,
-  toggleParam,
+  selectAllLeftParams,
+  deselectAllLeftParams,
+  toggleLeftParam,
+
   formatToHexInput,
-  formatToHexOutput,
+  selectedParamsFromInput,
+  isSpecialCommandFromHex,
+  filteredParamsFromInput,
   formatToHexError,
-  hasFormatToHexResult,
+  hasFormatInput,
+  rightFormatOutput,
+  rightRebuiltPacketText,
   handleFormatToHexReset,
+  selectAllRightParams,
+  deselectAllRightParams,
+  toggleRightParam,
 } = useConverter()
 
 const showSettings = ref(false)
@@ -69,10 +78,10 @@ function handleAddKeyup(e: KeyboardEvent) {
 
 <template>
   <div class="flex-1 flex p-3 gap-3 overflow-hidden">
-    <!-- 文本转参数 -->
+    <!-- 左侧：发包文本输入 -->
     <div class="panel flex-1 flex flex-col min-w-0">
       <div class="section-title">
-        发包文本 → 字节集参数
+        发包文本 → 字节集参数 / 发包文本
         <Button
           type="default"
           size="sm"
@@ -129,24 +138,30 @@ function handleAddKeyup(e: KeyboardEvent) {
         </div>
 
         <ParamSelector
-          v-if="hasHexToFormatResult"
-          :params="parsedParams"
+          v-if="hasPacketTextInput"
+          :params="selectedParams"
           :filtered-count="filteredParams.length"
           :is-special-command="isSpecialCommand"
-          @select-all="selectAll"
-          @deselect-all="deselectAll"
-          @toggle="toggleParam"
+          @select-all="selectAllLeftParams"
+          @deselect-all="deselectAllLeftParams"
+          @toggle="toggleLeftParam"
         />
 
         <ConvertResult
-          v-if="hasHexToFormatResult"
+          v-if="hasPacketTextInput"
           :output="hexToFormatOutput"
           label="字节集参数"
+        />
+
+        <ConvertResult
+          v-if="hasPacketTextInput"
+          :output="leftRebuiltPacketText"
+          label="发包文本"
         />
       </div>
     </div>
 
-    <!-- 参数转文本 -->
+    <!-- 右侧：字节集参数输入 -->
     <div class="panel flex-1 flex flex-col min-w-0">
       <div class="section-title">
         字节集参数 → 发包文本
@@ -193,9 +208,25 @@ function handleAddKeyup(e: KeyboardEvent) {
           <span>{{ formatToHexError }}</span>
         </div>
 
+        <ParamSelector
+          v-if="hasFormatInput"
+          :params="selectedParamsFromInput"
+          :filtered-count="filteredParamsFromInput.length"
+          :is-special-command="isSpecialCommandFromHex"
+          @select-all="selectAllRightParams"
+          @deselect-all="deselectAllRightParams"
+          @toggle="toggleRightParam"
+        />
+
         <ConvertResult
-          v-if="hasFormatToHexResult"
-          :output="formatToHexOutput"
+          v-if="hasFormatInput"
+          :output="rightFormatOutput"
+          label="字节集参数"
+        />
+
+        <ConvertResult
+          v-if="hasFormatInput"
+          :output="rightRebuiltPacketText"
           label="发包文本"
         />
       </div>
