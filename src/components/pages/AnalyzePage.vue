@@ -60,71 +60,40 @@ watch(
 
 <template>
   <PageLayout>
-    <!-- Mobile Layout -->
-    <div class="md:hidden flex flex-col gap-2 flex-1 min-h-0">
-      <div class="flex-shrink-0" style="height: 200px">
+    <div class="flex gap-3 flex-shrink-0" style="height: 280px">
+      <div class="w-[45%] min-w-0">
         <HexInput />
       </div>
-      <div class="flex-shrink-0">
+      <div class="w-[10%] min-w-0">
         <ActionPanel
           @import-file="store.handleImportFile"
           @export="store.handleExport"
           @reset="store.handleReset"
         />
       </div>
-      <div class="flex-shrink-0" style="height: 150px">
+      <div class="w-[45%] min-w-0">
         <BinaryDisplay :result="result" />
-      </div>
-      <div class="flex-shrink-0">
-        <HeaderPanel :result="result" />
-      </div>
-      <div class="flex flex-col gap-2 flex-1 min-h-0">
-        <div class="flex-1 min-h-[120px] overflow-hidden">
-          <OutputArea :result="result" :hex-byte-size="hexByteSize" @update:hex-byte-size="store.handleHexByteSizeChange" />
-        </div>
-        <div class="flex-1 min-h-[120px] overflow-hidden">
-          <DiffArea :result="result" :hex-byte-size="hexByteSize" />
-        </div>
       </div>
     </div>
 
-    <!-- Desktop Layout -->
-    <div class="hidden md:flex flex-col gap-3 flex-1 min-h-0">
-      <div class="flex gap-3 flex-shrink-0" style="height: 280px">
-        <div class="w-[45%] min-w-0">
-          <HexInput />
+    <div
+      class="flex gap-3 flex-shrink-0"
+      style="
+        height: calc(100vh - 340px);
+        min-height: 300px;
+        max-height: 560px;
+      "
+    >
+      <div class="w-[80%] flex flex-col gap-3 min-w-0 h-full">
+        <div class="h-[50%] overflow-hidden">
+          <OutputArea :result="result" :hex-byte-size="hexByteSize" @update:hex-byte-size="store.handleHexByteSizeChange" />
         </div>
-        <div class="w-[10%] min-w-0">
-          <ActionPanel
-            @import-file="store.handleImportFile"
-            @export="store.handleExport"
-            @reset="store.handleReset"
-          />
-        </div>
-        <div class="w-[45%] min-w-0">
-          <BinaryDisplay :result="result" />
+        <div class="h-[50%] overflow-hidden">
+          <DiffArea :result="result" :hex-byte-size="hexByteSize" />
         </div>
       </div>
-
-      <div
-        class="flex gap-3 flex-shrink-0"
-        style="
-          height: calc(100vh - 340px);
-          min-height: 300px;
-          max-height: 560px;
-        "
-      >
-        <div class="w-[80%] flex flex-col gap-3 min-w-0 h-full">
-          <div class="h-[50%] overflow-hidden">
-            <OutputArea :result="result" :hex-byte-size="hexByteSize" @update:hex-byte-size="store.handleHexByteSizeChange" />
-          </div>
-          <div class="h-[50%] overflow-hidden">
-            <DiffArea :result="result" :hex-byte-size="hexByteSize" />
-          </div>
-        </div>
-        <div class="w-[20%] min-w-0 h-full">
-          <HeaderPanel :result="result" />
-        </div>
+      <div class="w-[20%] min-w-0 h-full">
+        <HeaderPanel :result="result" />
       </div>
     </div>
   </PageLayout>

@@ -1,23 +1,47 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import Button from '@/components/base/Button.vue'
-import AnalyzePage from '@/components/pages/AnalyzePage.vue'
-import ConvertPage from '@/components/pages/ConvertPage.vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import MobileWarning from '@/components/MobileWarning.vue'
 import StatusBar from '@/components/StatusBar.vue'
+import { useAnalysisStore } from '@/stores/analysis'
+import { formatParamCount, separatePackets } from '@/utils'
 
-const activeTab = ref<'analyze' | 'convert'>('analyze')
+const route = useRoute()
+const store = useAnalysisStore()
+const showMobileWarning = ref(false)
 
-const analyzeStatus = reactive({
-  validPackets: 0,
-  paramCount: '0',
-  diffCount: 0,
-  analyzed: false,
-  loading: false,
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
 })
 
-function handleStatusChange(status: typeof analyzeStatus) {
-  Object.assign(analyzeStatus, status)
+function checkMobile() {
+  const ua = navigator.userAgent.toLowerCase()
+  const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(ua)
+  const isSmallScreen = window.innerWidth < 768
+  showMobileWarning.value = isMobileDevice || isSmallScreen
 }
+
+const statusInfo = computed(() => {
+  const { result, isAnalyzed, isLoading } = store
+  if (!result) {
+    return {
+      validPackets: 0,
+      paramCount: '0',
+      diffCount: 0,
+      analyzed: false,
+      loading: false,
+    }
+  }
+  const { receivePackets } = separatePackets(result.packets)
+  return {
+    validPackets: result.validPackets,
+    paramCount: formatParamCount(receivePackets),
+    diffCount: result.diffCount,
+    analyzed: isAnalyzed,
+    loading: isLoading,
+  }
+})
 </script>
 
 <template>
@@ -26,11 +50,11 @@ function handleStatusChange(status: typeof analyzeStatus) {
       <h1 class="page-title">
         分析助手
       </h1>
-      <div class="flex gap-1 md:gap-2">
-        <Button
-          :type="activeTab === 'analyze' ? 'primary' : 'default'"
-          size="sm"
-          @click="activeTab = 'analyze'"
+      <nav class="flex gap-2">
+        <router-link
+          to="/analyze"
+          class="no-underline btn-base btn-sm"
+          :class="route.path === '/analyze' ? 'btn-primary' : 'btn-default'"
         >
           <div class="label-with-icon">
             <svg
@@ -46,13 +70,13 @@ function handleStatusChange(status: typeof analyzeStatus) {
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
               />
             </svg>
-            <span class="hidden md:inline">分析</span>
+            <span>分析</span>
           </div>
-        </Button>
-        <Button
-          :type="activeTab === 'convert' ? 'primary' : 'default'"
-          size="sm"
-          @click="activeTab = 'convert'"
+        </router-link>
+        <router-link
+          to="/convert"
+          class="no-underline btn-base btn-sm"
+          :class="route.path === '/convert' ? 'btn-primary' : 'btn-default'"
         >
           <div class="label-with-icon">
             <svg
@@ -68,26 +92,27 @@ function handleStatusChange(status: typeof analyzeStatus) {
                 d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
               />
             </svg>
-            <span class="hidden md:inline">转换</span>
+            <span>转换</span>
           </div>
-        </Button>
-      </div>
+        </router-link>
+      </nav>
     </header>
 
-    <KeepAlive>
-      <component
-        :is="activeTab === 'analyze' ? AnalyzePage : ConvertPage"
-        @status-change="handleStatusChange"
-      />
-    </KeepAlive>
+    <router-view v-slot="{ Component }">
+      <keep-alive>
+        <component :is="Component" />
+      </keep-alive>
+    </router-view>
 
     <StatusBar
-      :valid-packets="analyzeStatus.validPackets"
-      :param-count="analyzeStatus.paramCount"
-      :diff-count="analyzeStatus.diffCount"
-      :analyzed="analyzeStatus.analyzed"
-      :loading="analyzeStatus.loading"
-      :show-info="activeTab === 'analyze'"
+      :valid-packets="statusInfo.validPackets"
+      :param-count="statusInfo.paramCount"
+      :diff-count="statusInfo.diffCount"
+      :analyzed="statusInfo.analyzed"
+      :loading="statusInfo.loading"
+      :show-info="route.path === '/analyze'"
     />
+
+    <MobileWarning :show="showMobileWarning" @close="showMobileWarning = false" />
   </div>
 </template>

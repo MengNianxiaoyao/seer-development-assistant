@@ -61,8 +61,8 @@ export default defineConfig({
     'status-bar': 'bg-gray-800 text-white px-4 py-1.5 text-xs flex items-center justify-between',
 
     // Header
-    'page-header': 'bg-white shadow-sm border-b border-gray-200 px-2 md:px-4 py-2 flex items-center justify-between',
-    'page-title': 'text-sm md:text-base font-bold text-gray-800',
+    'page-header': 'bg-white shadow-sm border-b border-gray-200 px-4 py-2 flex items-center justify-between',
+    'page-title': 'text-base font-bold text-gray-800',
   },
   theme: {
     colors: {
