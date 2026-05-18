@@ -89,6 +89,27 @@ export function parseSpecialFormat(raw: string): { commandId: string, params: st
 }
 
 /**
+ * 解析字节集参数格式
+ * 支持格式如 "{46046}" 或 "{46046,1,6008}"
+ * @param raw - 原始输入字符串
+ * @returns 解析后的命令ID和参数字符串，或 null 如果格式不匹配
+ */
+export function parseByteSetFormat(raw: string): { commandId: string, params: string } | null {
+  const match = raw.trim().match(/^\{(\d+)(?:,(\d+(?:,\d+)*))?\}$/)
+  if (!match)
+    return null
+  const [, cmdId, paramsStr] = match
+  const commandId = Number.parseInt(cmdId, 10)
+  if (Number.isNaN(commandId) || commandId < 0)
+    return null
+  const params = paramsStr ? paramsStr.split(',').map(p => decimalToHex(Number(p), 8)) : []
+  return {
+    commandId: decimalToHex(commandId, 8),
+    params: params.join(''),
+  }
+}
+
+/**
  * 将输入转换为标准十六进制封包格式
  * 如果是特殊格式则构建完整封包，否则清理十六进制字符
  * @param raw - 原始输入字符串
@@ -101,6 +122,12 @@ export function parseRawToHex(raw: string, headerLength: number): string {
     const paramsHex = specialParsed.params
     const packetLength = headerLength + paramsHex.length
     return `${decimalToHex(packetLength, 8)}00${specialParsed.commandId}0000000000000000${paramsHex}`
+  }
+  const byteSetParsed = parseByteSetFormat(raw)
+  if (byteSetParsed) {
+    const paramsHex = byteSetParsed.params
+    const packetLength = headerLength + paramsHex.length
+    return `${decimalToHex(packetLength, 8)}00${byteSetParsed.commandId}0000000000000000${paramsHex}`
   }
   return cleanHex(raw)
 }
