@@ -17,18 +17,29 @@ const diffIndices = computed(() => {
   return [...diffIndexSet.value].sort((a, b) => a - b)
 })
 
+const diffPacketsWithMaps = computed(() => {
+  return diffPackets.value.map(packet => ({
+    ...packet,
+    paramMap: new Map(packet.params.map(p => [p.index, p])),
+    paramIndexSet: new Set(packet.params.map(p => p.index)),
+  }))
+})
+
 function formatParamValue(
-  packet: { params: { index: number, hex: string }[], header: { commandId: { decimal: number } } },
+  packet: { paramMap: Map<number, { hex: string }>, header: { commandId: { decimal: number } } },
   index: number,
 ): string {
-  const param = packet.params.find(p => p.index === index)
+  const param = packet.paramMap.get(index)
   if (!param)
     return ''
   return formatValue(param.hex, props.hexByteSize, packet.header.commandId.decimal)
 }
 
-function hasParam(packet: { params: { index: number, hex: string }[] }, index: number): boolean {
-  return packet.params.some(p => p.index === index)
+function hasParam(
+  packet: { paramIndexSet: Set<number> },
+  index: number,
+): boolean {
+  return packet.paramIndexSet.has(index)
 }
 </script>
 
@@ -76,7 +87,7 @@ function hasParam(packet: { params: { index: number, hex: string }[] }, index: n
     <div v-else class="flex-1 overflow-x-auto overflow-y-auto">
       <div class="flex gap-2">
         <div
-          v-for="(packet, pIdx) in diffPackets"
+          v-for="(packet, pIdx) in diffPacketsWithMaps"
           :key="packet.id"
           class="card inline-block flex-shrink-0"
         >

@@ -22,9 +22,15 @@ function handleChange(e: Event) {
   }
 }
 
+function hasFiles(e: DragEvent): boolean {
+  return !!e.dataTransfer?.types.includes('Files')
+}
+
 function handleWindowDragOver(e: DragEvent) {
-  e.preventDefault()
-  isDragging.value = true
+  if (hasFiles(e)) {
+    e.preventDefault()
+    isDragging.value = true
+  }
 }
 
 function handleWindowDragLeave(e: DragEvent) {

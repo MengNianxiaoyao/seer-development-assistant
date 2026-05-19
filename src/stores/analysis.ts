@@ -103,11 +103,15 @@ export const useAnalysisStore = defineStore('analysis', () => {
 
   /** 监听输入变化自动分析 */
   watch(
-    [inputs, sendPacket],
+    () => {
+      const inputStr = inputs.value
+        .map(i => `${i.value}|${i.enabled}|${i.label}`)
+        .join('::')
+      return `${inputStr}||${sendPacket.value}`
+    },
     () => {
       debouncedAnalyze()
     },
-    { deep: true, immediate: false },
   )
 
   /**

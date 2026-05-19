@@ -1,3 +1,4 @@
+import type { Ref } from 'vue'
 import { computed, ref, watch } from 'vue'
 import { HEADER_LENGTH } from '@/constants'
 import { useSettingsStore } from '@/stores/settings'
@@ -81,12 +82,85 @@ function parseFormatToParams(format: string) {
 }
 
 /**
+ * 单侧格式转换管线
+ * 封装参数选择、过滤、输出格式化的共享逻辑
+ */
+function useFormatConverter(
+  paramsRef: Ref<ParsedParam[]>,
+  commandIdRef: Ref<string>,
+) {
+  const settingsStore = useSettingsStore()
+
+  const selectedParams = ref<ParsedParam[]>([])
+
+  watch(
+    paramsRef,
+    (params) => {
+      selectedParams.value = params.map(p => ({ ...p }))
+    },
+    { immediate: true },
+  )
+
+  const isSpecialCommand = computed(() => {
+    if (paramsRef.value.length <= 1)
+      return false
+    const id = Number(commandIdRef.value)
+    return settingsStore.isSpecialCommand(id)
+  })
+
+  const filteredParams = computed(() => {
+    if (isSpecialCommand.value) {
+      return selectedParams.value.filter(p => p.selected && p.index > 1)
+    }
+    return selectedParams.value.filter(p => p.selected)
+  })
+
+  function selectAll() {
+    selectedParams.value.forEach(p => (p.selected = true))
+    selectedParams.value = [...selectedParams.value]
+  }
+
+  function deselectAll() {
+    const isSpecial = isSpecialCommand.value
+    selectedParams.value.forEach((p) => {
+      p.selected = isSpecial ? p.index === 1 : false
+    })
+    selectedParams.value = [...selectedParams.value]
+  }
+
+  function toggle(idx: number) {
+    const p = selectedParams.value.find(p => p.index === idx)
+    if (!p)
+      return
+
+    const currentSelected = selectedParams.value.filter(p => p.selected)
+    const isSpecial = isSpecialCommand.value
+
+    if (isSpecial && idx === 1)
+      return
+    if (isSpecial && p.selected && currentSelected.length <= 1)
+      return
+
+    p.selected = !p.selected
+    selectedParams.value = [...selectedParams.value]
+  }
+
+  return {
+    selectedParams,
+    isSpecialCommand,
+    filteredParams,
+    selectAll,
+    deselectAll,
+    toggle,
+  }
+}
+
+/**
  * 格式转换 composable
  * 提供十六进制与格式字符串之间的双向转换功能
  * @returns 转换相关的状态和方法
  */
 export function useConverter() {
-  const settingsStore = useSettingsStore()
   /** 十六进制转格式输入 */
   const hexToFormatInput = ref('')
   /** 格式转十六进制输入 */
@@ -97,9 +171,6 @@ export function useConverter() {
   const parsedParamsFromHex = ref<ParsedParam[]>([])
   /** 解析出的命令ID（从格式输入） */
   const parsedCommandIdFromHex = ref<string>('')
-
-  /** 选中的参数列表（从十六进制输入） */
-  const selectedParamsFromInput = ref<ParsedParam[]>([])
 
   /** 监听格式输入变化并解析 */
   watch(
@@ -123,14 +194,6 @@ export function useConverter() {
     { immediate: true },
   )
 
-  /** 是否为特殊命令（从格式输入） */
-  const isSpecialCommandFromHex = computed(() => {
-    if (parsedParamsFromHex.value.length <= 1)
-      return false
-    const id = Number(parsedCommandIdFromHex.value)
-    return settingsStore.isSpecialCommand(id)
-  })
-
   /** 十六进制解析结果 */
   const hexResult = computed(() =>
     hexToFormatInput.value.trim()
@@ -143,14 +206,6 @@ export function useConverter() {
   /** 十六进制转格式错误信息 */
   const hexToFormatError = computed(() => hexResult.value?.error ?? '')
 
-  /** 是否为特殊命令（从十六进制输入） */
-  const isSpecialCommand = computed(() => {
-    if (parsedParams.value.length <= 1)
-      return false
-    const id = Number(commandId.value)
-    return settingsStore.isSpecialCommand(id)
-  })
-
   /** 监听十六进制输入变化并解析 */
   watch(
     hexToFormatInput,
@@ -162,25 +217,17 @@ export function useConverter() {
     { immediate: true },
   )
 
-  /** 选中的参数列表 */
-  const selectedParams = ref<ParsedParam[]>([])
-
-  /** 过滤后的左侧参数列表 */
-  const leftFilteredParams = computed(() => {
-    if (isSpecialCommand.value) {
-      return selectedParams.value.filter(p => p.selected && p.index > 1)
-    }
-    return selectedParams.value.filter(p => p.selected)
-  })
+  const left = useFormatConverter(parsedParams, commandId)
+  const right = useFormatConverter(parsedParamsFromHex, parsedCommandIdFromHex)
 
   /** 十六进制转格式输出 */
   const hexToFormatOutput = computed(() => {
     if (!commandId.value)
       return ''
-    const params = leftFilteredParams.value
+    const params = left.filteredParams.value
     const count = params.length
-    const paramValues = params.map((p: ParsedParam) => p.value).join(',')
-    if (isSpecialCommand.value) {
+    const paramValues = params.map(p => p.value).join(',')
+    if (left.isSpecialCommand.value) {
       return `{${commandId.value},${count},${paramValues}}`
     }
     return paramValues ? `{${commandId.value},${paramValues}}` : `{${commandId.value}}`
@@ -203,6 +250,20 @@ export function useConverter() {
     return parsed.params.length === 0 ? '当前封包无参数，仅有封包头' : ''
   })
 
+  /** 格式转十六进制输出（右侧） */
+  const rightFormatOutput = computed(() => {
+    if (!formatToHexInput.value.trim())
+      return ''
+    const params = right.filteredParams.value
+    const count = params.length
+    const paramValues = params.map(p => p.value).join(',')
+    const cmdId = parsedCommandIdFromHex.value
+    if (right.isSpecialCommand.value) {
+      return `{${cmdId},${count},${paramValues}}`
+    }
+    return paramValues ? `{${cmdId},${paramValues}}` : `{${cmdId}}`
+  })
+
   /** 重建的封包文本（左侧） */
   const leftRebuiltPacketText = computed(() => {
     if (!hexToFormatOutput.value)
@@ -211,47 +272,6 @@ export function useConverter() {
     if (!parsed)
       return ''
     return buildPacketHex(parsed.commandId, parsed.params)
-  })
-
-  /** 监听解析参数变化并更新选中状态 */
-  watch(
-    parsedParams,
-    (params) => {
-      selectedParams.value = params.map(p => ({ ...p }))
-    },
-    { immediate: true },
-  )
-
-  watch(
-    parsedParamsFromHex,
-    (params) => {
-      selectedParamsFromInput.value = params.map(p => ({ ...p }))
-    },
-    { immediate: true },
-  )
-
-  /** 过滤后的右侧参数列表 */
-  const rightFilteredParams = computed(() => {
-    if (isSpecialCommandFromHex.value) {
-      return selectedParamsFromInput.value.filter(p => p.selected && p.index > 1)
-    }
-    return selectedParamsFromInput.value.filter(p => p.selected)
-  })
-
-  /** 格式转十六进制输出（右侧） */
-  const rightFormatOutput = computed(() => {
-    if (!formatToHexInput.value.trim())
-      return ''
-    const parsed = parseFormatToParams(formatToHexInput.value.trim())
-    if (!parsed)
-      return ''
-    const params = rightFilteredParams.value
-    const count = params.length
-    const paramValues = params.map((p: ParsedParam) => p.value).join(',')
-    if (isSpecialCommandFromHex.value) {
-      return `{${parsedCommandIdFromHex.value},${count},${paramValues}}`
-    }
-    return paramValues ? `{${parsedCommandIdFromHex.value},${paramValues}}` : `{${parsedCommandIdFromHex.value}}`
   })
 
   /** 重建的封包文本（右侧） */
@@ -270,7 +290,7 @@ export function useConverter() {
   function handleHexToFormatReset() {
     hexToFormatInput.value = ''
     parsedParams.value = []
-    selectedParams.value = []
+    left.selectedParams.value = []
   }
 
   /**
@@ -280,134 +300,34 @@ export function useConverter() {
     formatToHexInput.value = ''
     parsedCommandIdFromHex.value = ''
     parsedParamsFromHex.value = []
-    selectedParamsFromInput.value = []
-  }
-
-  /**
-   * 全选左侧参数
-   */
-  function selectAllLeftParams() {
-    selectedParams.value.forEach(p => (p.selected = true))
-    selectedParams.value = [...selectedParams.value]
-  }
-
-  /**
-   * 取消全选左侧参数
-   */
-  function deselectAllLeftParams() {
-    if (isSpecialCommand.value) {
-      selectedParams.value.forEach((p) => {
-        if (p.index === 1)
-          p.selected = true
-        else
-          p.selected = false
-      })
-    }
-    else {
-      selectedParams.value.forEach(p => (p.selected = false))
-    }
-    selectedParams.value = [...selectedParams.value]
-  }
-
-  /**
-   * 切换左侧参数选中状态
-   * @param idx - 参数索引
-   */
-  function toggleLeftParam(idx: number) {
-    const p = selectedParams.value.find(p => p.index === idx)
-    if (!p)
-      return
-
-    const currentSelected = selectedParams.value.filter(p => p.selected)
-    const isSpecial = isSpecialCommand.value
-
-    if (isSpecial && idx === 1)
-      return
-    if (isSpecial && p.selected && currentSelected.length <= 1)
-      return
-    if (!isSpecial && (p.selected && currentSelected.length <= 1))
-      return
-
-    p.selected = !p.selected
-
-    selectedParams.value = [...selectedParams.value]
-  }
-
-  /**
-   * 全选右侧参数
-   */
-  function selectAllRightParams() {
-    selectedParamsFromInput.value.forEach(p => (p.selected = true))
-    selectedParamsFromInput.value = [...selectedParamsFromInput.value]
-  }
-
-  /**
-   * 取消全选右侧参数
-   */
-  function deselectAllRightParams() {
-    if (isSpecialCommandFromHex.value) {
-      selectedParamsFromInput.value.forEach((p) => {
-        if (p.index === 1)
-          p.selected = true
-        else
-          p.selected = false
-      })
-    }
-    else {
-      selectedParamsFromInput.value.forEach(p => (p.selected = false))
-    }
-    selectedParamsFromInput.value = [...selectedParamsFromInput.value]
-  }
-
-  /**
-   * 切换右侧参数选中状态
-   * @param idx - 参数索引
-   */
-  function toggleRightParam(idx: number) {
-    const p = selectedParamsFromInput.value.find(p => p.index === idx)
-    if (!p)
-      return
-
-    const currentSelected = selectedParamsFromInput.value.filter(p => p.selected)
-    const isSpecial = isSpecialCommandFromHex.value
-
-    if (isSpecial && idx === 1)
-      return
-    if (isSpecial && p.selected && currentSelected.length <= 1)
-      return
-    if (!isSpecial && (p.selected && currentSelected.length <= 1))
-      return
-
-    p.selected = !p.selected
-
-    selectedParamsFromInput.value = [...selectedParamsFromInput.value]
+    right.selectedParams.value = []
   }
 
   return {
     hexToFormatInput,
-    selectedParams,
-    filteredParams: leftFilteredParams,
-    isSpecialCommand,
+    selectedParams: left.selectedParams,
+    filteredParams: left.filteredParams,
+    isSpecialCommand: left.isSpecialCommand,
     hexToFormatOutput,
     hexToFormatError,
     hasPacketTextInput,
     leftRebuiltPacketText,
     handleHexToFormatReset,
-    selectAllLeftParams,
-    deselectAllLeftParams,
-    toggleLeftParam,
+    selectAllLeftParams: left.selectAll,
+    deselectAllLeftParams: left.deselectAll,
+    toggleLeftParam: left.toggle,
 
     formatToHexInput,
-    selectedParamsFromInput,
-    isSpecialCommandFromHex,
-    filteredParamsFromInput: rightFilteredParams,
+    selectedParamsFromInput: right.selectedParams,
+    isSpecialCommandFromHex: right.isSpecialCommand,
+    filteredParamsFromInput: right.filteredParams,
     formatToHexError,
     hasFormatInput,
     rightFormatOutput,
     rightRebuiltPacketText,
     handleFormatToHexReset,
-    selectAllRightParams,
-    deselectAllRightParams,
-    toggleRightParam,
+    selectAllRightParams: right.selectAll,
+    deselectAllRightParams: right.deselectAll,
+    toggleRightParam: right.toggle,
   }
 }

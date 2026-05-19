@@ -164,7 +164,7 @@ function handleAddKeyup(e: KeyboardEvent) {
     <!-- 右侧：字节集参数输入 -->
     <div class="panel flex-1 flex flex-col min-w-0">
       <div class="section-title">
-        字节集参数 → 发包文本
+        字节集参数 → 字节集参数 / 发包文本
       </div>
 
       <div class="flex-1 flex flex-col gap-2 overflow-auto">
